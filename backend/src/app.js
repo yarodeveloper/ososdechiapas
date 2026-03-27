@@ -26,27 +26,23 @@ app.use(express.urlencoded({ extended: true }));
 // Serve Static Uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Healthy Check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Osos de Chiapas API is running' });
-});
+// Serve Frontend Static Files (Vite dist)
+const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
+app.use(express.static(frontendPath));
 
-// Import Routes
-const playerRoutes = require('./routes/player.routes');
-const categoryRoutes = require('./routes/category.routes');
-const userRoutes = require('./routes/user.routes');
-const teamRoutes = require('./routes/teams.routes');
-const matchRoutes = require('./routes/matches.routes');
-const catalogRoutes = require('./routes/catalogs.routes');
-const leadRoutes = require('./routes/lead.routes');
-
+// API Routes
 app.use('/api/players', playerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/teams', teamRoutes);
-app.use('/api/matches', matchRoutes); // Esto ya incluye /api/matches/live
+app.use('/api/matches', matchRoutes);
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
+
+// Catch-all to serve frontend's index.html for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 // Socket.io Logic
 io.on('connection', (socket) => {
@@ -58,8 +54,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('update_match_state', (data) => {
-    // data: { matchId, home_score, away_score, time_left, quarter, possession, play_log }
-    // Emitir a todos en la sala del partido (incluyendo padres)
     io.to(`match_${data.matchId}`).emit('match_updated', data);
   });
 
