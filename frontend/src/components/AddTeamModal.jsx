@@ -66,10 +66,8 @@ const AddTeamModal = ({ onClose, onSuccess }) => {
         {/* Header */}
         <div className="sticky top-0 bg-[#151515] px-6 py-6 border-b border-[#2a2a2a] flex justify-between items-center z-10">
           <h2 className="font-headline font-extrabold text-xl tracking-tight text-white uppercase">NUEVO RIVAL</h2>
-          <button onClick={onClose} className="p-2 -mr-2 text-zinc-500 hover:text-white transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
+          <button onClick={onClose} className="p-2 -mr-2 text-zinc-500 hover:text-white transition-opacity active:scale-95">
+            <SvgIcon src="/icons/close-ellipse-svgrepo-com.svg" className="w-5 h-5" />
           </button>
         </div>
 
