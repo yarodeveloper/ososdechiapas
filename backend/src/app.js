@@ -54,8 +54,9 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
-// Catch-all to serve frontend's index.html (Express 5 Compatibility)
-app.get('/:path*', (req, res) => {
+// Catch-all to serve frontend's index.html (Express 5 & Node 24 Compatibility)
+// Use (.*) as the wildcard for Express 5
+app.get('(.*)', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
