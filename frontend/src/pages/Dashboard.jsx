@@ -108,7 +108,7 @@ const Dashboard = () => {
                       <div className="w-16 h-16 bg-black/20 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-black/10 shadow-lg">
                          <span className="text-2xl font-display font-black italic italic opacity-60 truncate max-w-[40px] uppercase">R</span>
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.1em] truncate max-w-[60px]">{nextMatch.visitor_name.split(' ')[0]}</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.1em] truncate max-w-[60px]">{(nextMatch && nextMatch.visitor_name ? nextMatch.visitor_name : 'RIVAL').split(' ')[0]}</span>
                    </div>
                 </div>
                 <div className="text-center w-full bg-black/20 py-4 px-6 rounded-2xl border border-white/5">
@@ -163,7 +163,7 @@ const Dashboard = () => {
                           </div>
                           <div className="text-[10px] font-black opacity-20 pb-1">VS</div>
                           <div className="flex flex-col items-end">
-                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none truncate max-w-[80px]">{match.visitor_name.split(' ')[0]}</span>
+                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none truncate max-w-[80px]">{(match.visitor_name || 'RIVAL').split(' ')[0]}</span>
                              <span className="text-3xl font-display font-black italic italic leading-none">{match.visitor_score}</span>
                           </div>
                        </div>
