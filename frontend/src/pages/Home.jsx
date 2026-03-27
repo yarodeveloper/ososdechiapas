@@ -131,7 +131,7 @@ const FeedComponent = () => (
         <div className="inline-block px-3 py-1 bg-zinc-900 rounded-full mb-4 border border-zinc-800 text-[9px] font-black uppercase tracking-[0.25em] text-red-600/60">
             Instagram
         </div>
-        <h2 className="text-2xl font-display font-black uppercase italic italic tracking-tight mb-2">The Obsidian Feed</h2>
+        <h2 className="text-2xl font-display font-black uppercase italic italic tracking-tight mb-2">La vida de un Oso, no se detiene</h2>
         <p className="text-zinc-500 font-medium text-xs leading-relaxed">Sigue el día a día de la manada desde el campo.</p>
       </div>
 

@@ -9,6 +9,7 @@ import PlayerList from './pages/PlayerList';
 import AddPlayer from './pages/AddPlayer';
 import MatchControl from './pages/MatchControl';
 import GameCenter from './pages/GameCenter';
+import PlayerDetail from './pages/PlayerDetail';
 import './index.css';
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/players/new" element={<AddPlayer />} />
         <Route path="/admin/score-control/:id" element={<MatchControl />} />
         <Route path="/game-center/:id" element={<GameCenter />} />
+        <Route path="/players/:id" element={<PlayerDetail />} />
       </Routes>
     </Router>
   );

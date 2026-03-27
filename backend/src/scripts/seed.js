@@ -1,36 +1,139 @@
+/**
+ * Seed script — usa el schema real de alter_schema.sql
+ * Ejecutar: npm run seed (desde /backend)
+ */
 const db = require('../config/db');
 
-const categories = [
-  { name: 'Tiny Tot', description: 'Categoría para niños principiantes', min_age: 4, max_age: 6 },
-  { name: 'Peewee', description: 'Categoría infantil inicial', min_age: 7, max_age: 8 },
-  { name: 'Midget', description: 'Categoría infantil intermedia', min_age: 9, max_age: 10 },
-  { name: 'Junior Bantam', description: 'Categoría pre-juvenil', min_age: 11, max_age: 12 },
-  { name: 'Bantam', description: 'Categoría juvenil inicial', min_age: 13, max_age: 14 },
-  { name: 'Juvenil', description: 'Categoría para adolescentes competitivos', min_age: 15, max_age: 17 },
-  { name: 'Tochito Flag', description: 'Fútbol bandera, categoría mixta', min_age: 6, max_age: 99 }
-];
-
-const seedCategories = async () => {
+const seed = async () => {
   try {
-    console.log('Iniciando el sembrado de categorías...');
-    
-    // Limpiar tabla (opcional)
-    // await db.query('DELETE FROM categories');
-    
-    for (const cat of categories) {
-       await db.query(
-         'INSERT INTO categories (name, description, min_age, max_age) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=name', 
-         [cat.name, cat.description, cat.min_age, cat.max_age]
-       );
-       console.log(`✅ Categoría "${cat.name}" insertada.`);
+    console.log('🌱 Iniciando seed...\n');
+
+    // ── Categorías (sin min_age / max_age — no existen en el schema real) ───
+    const categories = [
+      ['Tiny Tot',      'Categoría para niños principiantes'],
+      ['Peewee',        'Categoría infantil inicial'],
+      ['Midget',        'Categoría infantil intermedia'],
+      ['Junior Bantam', 'Categoría pre-juvenil'],
+      ['Bantam',        'Categoría juvenil inicial'],
+      ['Juvenil',       'Categoría para adolescentes competitivos'],
+      ['Tochito Flag',  'Fútbol bandera, categoría mixta'],
+    ];
+
+    console.log('📂 Insertando categorías...');
+    for (const [name, description] of categories) {
+      await db.query(
+        'INSERT INTO categories (name, description) VALUES (?, ?) ON DUPLICATE KEY UPDATE name=name',
+        [name, description]
+      );
+      console.log(`  ✅ ${name}`);
     }
 
-    console.log('--- Sembrado de categorías finalizado con éxito ---');
+    // ── Posiciones (por si no existen) ─────────────────────────────────────
+    const positions = [
+      'Quarterback (QB)', 'Running Back (RB)', 'Wide Receiver (WR)',
+      'Tight End (TE)',   'Offensive Line (OL)', 'Linebacker (LB)',
+      'Cornerback (CB)', 'Safety (S)',          'Defensive Line (DL)',
+      'Kicker (K)',      'Punter (P)',
+    ];
+
+    console.log('\n🏈 Insertando posiciones...');
+    for (const name of positions) {
+      await db.query(
+        'INSERT INTO catalogs_positions (name) VALUES (?) ON DUPLICATE KEY UPDATE name=name',
+        [name]
+      );
+      console.log(`  ✅ ${name}`);
+    }
+
+    // ── Tipos de sangre (por si no existen) ────────────────────────────────
+    const bloodTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+
+    console.log('\n🩸 Insertando tipos de sangre...');
+    for (const name of bloodTypes) {
+      await db.query(
+        'INSERT INTO catalogs_blood_types (name) VALUES (?) ON DUPLICATE KEY UPDATE name=name',
+        [name]
+      );
+      console.log(`  ✅ ${name}`);
+    }
+
+    // ── Usuario admin de prueba ─────────────────────────────────────────────
+    console.log('\n👤 Insertando usuario admin de prueba...');
+    await db.query(
+      `INSERT INTO users (name, email, password_hash, phone, role)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE name=name`,
+      ['Admin Osos', 'admin@ososdechiapas.com', 'temp_password_hash', '9611234567', 'admin']
+    );
+    console.log('  ✅ admin@ososdechiapas.com');
+
+    // ── Obtener IDs para insertar jugadores de prueba ───────────────────────
+    const [[{ userId }]] = await db.query(
+      "SELECT id as userId FROM users WHERE email = 'admin@ososdechiapas.com'"
+    );
+    const [[peewee]] = await db.query(
+      "SELECT id FROM categories WHERE name = 'Peewee'"
+    );
+    const [[varsity]] = await db.query(
+      "SELECT id FROM categories WHERE name = 'Juvenil'"
+    );
+    const [[qb]] = await db.query(
+      "SELECT id FROM catalogs_positions WHERE name = 'Quarterback (QB)'"
+    );
+    const [[wr]] = await db.query(
+      "SELECT id FROM catalogs_positions WHERE name = 'Wide Receiver (WR)'"
+    );
+    const [[rb]] = await db.query(
+      "SELECT id FROM catalogs_positions WHERE name = 'Running Back (RB)'"
+    );
+    const [[oPos]] = await db.query(
+      "SELECT id FROM catalogs_blood_types WHERE name = 'O+'"
+    );
+    const [[aPos]] = await db.query(
+      "SELECT id FROM catalogs_blood_types WHERE name = 'A+'"
+    );
+
+    // ── Jugadores de prueba ─────────────────────────────────────────────────
+    const players = [
+      [1, 'Guillermo Ochoa Pérez',   '2014-05-15', 'OCPG140515HCSRLL09', qb.id,  peewee.id,  oPos.id, '9611234001'],
+      [1, 'Roberto Sánchez López',   '2007-01-20', 'SALR070120HCSNCB08', rb.id,  varsity.id, aPos.id, '9611234002'],
+      [1, 'Carlos Gómez Hernández',  '2008-11-10', 'GOMC081110HCSMRL07', wr.id,  varsity.id, oPos.id, '9611234003'],
+      [1, 'Miguel Torres Ruíz',      '2015-03-08', 'TORM150308HCSNRG05', qb.id,  peewee.id,  aPos.id, '9611234004'],
+    ];
+
+    // ── Migrar tabla players al schema nuevo (si es DB local con schema viejo) ─
+    console.log('\n🔧 Migrando schema de players...');
+    const migrations = [
+      `ALTER TABLE players ADD COLUMN IF NOT EXISTS name VARCHAR(100)`,
+      `ALTER TABLE players ADD COLUMN IF NOT EXISTS curp VARCHAR(18)`,
+      `ALTER TABLE players ADD COLUMN IF NOT EXISTS position_id INT`,
+      `ALTER TABLE players ADD COLUMN IF NOT EXISTS blood_type_id INT`,
+      `ALTER TABLE players ADD COLUMN IF NOT EXISTS emergency_phone VARCHAR(20)`,
+    ];
+    for (const sql of migrations) {
+      await db.query(sql).catch(() => {}); // Ignorar si ya existe
+    }
+    console.log('  ✅ Schema actualizado');
+
+    console.log('\n🏈 Insertando jugadores de prueba...');
+    await db.query('SET FOREIGN_KEY_CHECKS=0');
+    for (const p of players) {
+      await db.query(
+        `INSERT INTO players (user_id, name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE name=name`,
+        p
+      );
+      console.log(`  ✅ ${p[1]}`);
+    }
+    await db.query('SET FOREIGN_KEY_CHECKS=1');
+
+    console.log('\n✅ Seed completado exitosamente.\n');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error en el sembrado:', err);
+    console.error('\n❌ Error en el seed:', err.message);
     process.exit(1);
   }
 };
 
-seedCategories();
+seed();

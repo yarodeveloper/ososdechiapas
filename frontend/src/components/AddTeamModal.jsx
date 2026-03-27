@@ -30,8 +30,8 @@ const AddTeamModal = ({ onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !logoFile) {
-      alert("Nombre y Logo son obligatorios");
+    if (!name) {
+      alert('El nombre del equipo es obligatorio');
       return;
     }
     setIsSubmitting(true);
@@ -41,7 +41,7 @@ const AddTeamModal = ({ onClose, onSuccess }) => {
     formData.append('name', name);
     formData.append('home_stadium', stadium);
     formData.append('jersey_color_hex', color);
-    formData.append('logo', logoFile);
+    if (logoFile) formData.append('logo', logoFile);
 
     try {
       const res = await fetch('/api/teams', {
@@ -66,8 +66,10 @@ const AddTeamModal = ({ onClose, onSuccess }) => {
         {/* Header */}
         <div className="sticky top-0 bg-[#151515] px-6 py-6 border-b border-[#2a2a2a] flex justify-between items-center z-10">
           <h2 className="font-headline font-extrabold text-xl tracking-tight text-white uppercase">NUEVO RIVAL</h2>
-          <button onClick={onClose} className="p-2 -mr-2 text-[#a3a3a3] hover:text-white transition-colors">
-            <SvgIcon src="/icons/arrow-open-right-svgrepo-com.svg" className="w-5 h-5 rotate-45 transform" />
+          <button onClick={onClose} className="p-2 -mr-2 text-zinc-500 hover:text-white transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
           </button>
         </div>
 
@@ -88,7 +90,7 @@ const AddTeamModal = ({ onClose, onSuccess }) => {
 
           {/* Target Logo */}
           <div className="space-y-2">
-            <label className="font-label text-xs font-semibold uppercase tracking-[0.15em] text-[#e5e5e5] block ml-1">Logo del equipo</label>
+            <label className="font-label text-xs font-semibold uppercase tracking-[0.15em] text-[#e5e5e5] block ml-1">Logo del equipo <span className="text-zinc-500 normal-case font-normal">(opcional)</span></label>
             
             <div 
               onClick={handleFileClick}

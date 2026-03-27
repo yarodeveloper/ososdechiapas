@@ -29,7 +29,7 @@ const Login = () => {
             <img src="/logo_osos.webp" alt="Logo Osos" className="w-full h-full object-contain drop-shadow-2xl" />
           </div>
           <h1 className="text-4xl font-display font-black uppercase italic tracking-tighter">
-            Osos <span className="text-red-600 italic">Family</span>
+            Osos <span className="text-red-600 italic">deChiapas</span>
           </h1>
           <p className="text-zinc-400 text-sm font-medium mt-3 tracking-wide">Portal exclusivo para Staff y Jugadores</p>
         </header>
