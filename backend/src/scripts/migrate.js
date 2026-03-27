@@ -13,7 +13,6 @@ const migrate = async () => {
         const queries = sql.split(';').filter(q => q.trim().length > 0);
         
         for (let query of queries) {
-            // Eliminar comentarios de una línea
             const cleanQuery = query.split('\n')
                 .filter(line => !line.trim().startsWith('--'))
                 .join(' ')
@@ -21,12 +20,16 @@ const migrate = async () => {
                 
             if (cleanQuery.length === 0) continue;
             
-            await db.query(cleanQuery);
-            console.log('Executed:', cleanQuery.substring(0, 50) + '...');
+            try {
+                await db.query(cleanQuery);
+                console.log('Executed:', cleanQuery.substring(0, 50) + '...');
+            } catch (queryErr) {
+                console.warn('Query failed (skipping):', cleanQuery.substring(0, 50) + '...', queryErr.message);
+            }
         }
-        console.log('Migration completed successfully!');
+        console.log('Migration process finished!');
     } catch (error) {
-        console.error('Migration failed:', error);
+        console.error('Fatal Migration error:', error);
     } finally {
         process.exit();
     }

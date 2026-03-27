@@ -47,6 +47,17 @@ CREATE TABLE IF NOT EXISTS players (
     FOREIGN KEY (blood_type_id) REFERENCES catalogs_blood_types(id)
 );
 
+-- Migración forzada si la tabla ya existía con esquema viejo
+ALTER TABLE players ADD COLUMN IF NOT EXISTS name VARCHAR(100) AFTER id;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS curp VARCHAR(18) AFTER birth_date;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS emergency_phone VARCHAR(20) AFTER photo_url;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS position_id INT AFTER user_id;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS blood_type_id INT AFTER category_id;
+
+-- Permitir nulos en columnas viejas para que no estorben
+ALTER TABLE players MODIFY COLUMN IF EXISTS first_name VARCHAR(100) NULL;
+ALTER TABLE players MODIFY COLUMN IF EXISTS last_name VARCHAR(100) NULL;
+
 CREATE TABLE IF NOT EXISTS teams (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
