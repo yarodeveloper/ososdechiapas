@@ -9,8 +9,8 @@ const createTeam = async (req, res) => {
       logo_url = `/uploads/images/${req.file.filename}`;
     }
 
-    if (!name || !logo_url) {
-      return res.status(400).json({ message: "Nombre y Logo son obligatorios" });
+    if (!name) {
+      return res.status(400).json({ message: "El nombre del equipo es obligatorio" });
     }
 
     const query = `

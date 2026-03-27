@@ -11,8 +11,9 @@ const TeamList = () => {
   const fetchTeams = async () => {
     try {
       const res = await fetch('/api/teams');
+      if (!res.ok) return;
       const data = await res.json();
-      setTeams(data);
+      setTeams(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
     }

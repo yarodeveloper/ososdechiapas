@@ -13,9 +13,16 @@ const migrate = async () => {
         const queries = sql.split(';').filter(q => q.trim().length > 0);
         
         for (let query of queries) {
-            if(query.trim().startsWith('--')) continue;
-            await db.query(query);
-            console.log('Executed:', query.substring(0, 50).replace(/\n/g, ' ') + '...');
+            // Eliminar comentarios de una línea
+            const cleanQuery = query.split('\n')
+                .filter(line => !line.trim().startsWith('--'))
+                .join(' ')
+                .trim();
+                
+            if (cleanQuery.length === 0) continue;
+            
+            await db.query(cleanQuery);
+            console.log('Executed:', cleanQuery.substring(0, 50) + '...');
         }
         console.log('Migration completed successfully!');
     } catch (error) {
