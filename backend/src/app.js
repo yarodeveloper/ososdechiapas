@@ -17,7 +17,7 @@ const io = new Server(httpServer, {
 });
 
 // Middlewares
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -48,8 +48,8 @@ app.use('/api/matches', matchRoutes); // Includes details and update-live
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
-// Catch-all to serve frontend's index.html for SPA routing
-app.get('/*', (req, res) => {
+// Catch-all to serve frontend's index.html for SPA routing (Express 5 Syntax)
+app.get('/:path*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
