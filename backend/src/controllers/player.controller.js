@@ -3,7 +3,7 @@ const db = require('../config/db.js');
 // ─── CREATE ───────────────────────────────────────────────────────────────────
 const createPlayer = async (req, res) => {
   try {
-    const { name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone } = req.body;
+    const { name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone, allergies } = req.body;
     let photo_url = null;
 
     if (req.file) {
@@ -17,9 +17,9 @@ const createPlayer = async (req, res) => {
     const user_id = 1;
 
     const [result] = await db.query(
-      `INSERT INTO players (user_id, name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone, photo_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [user_id, name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, photo_url]
+      `INSERT INTO players (user_id, name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone, allergies, photo_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, photo_url]
     );
 
     res.status(201).json({ id: result.insertId, name, curp, message: "Jugador guardado exitosamente" });
@@ -72,7 +72,7 @@ const getPlayerById = async (req, res) => {
 const updatePlayer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone } = req.body;
+    const { name, birth_date, curp, position_id, category_id, blood_type_id, emergency_phone, allergies } = req.body;
 
     // Check player exists
     const [existing] = await db.query('SELECT id, photo_url FROM players WHERE id = ?', [id]);
@@ -84,9 +84,9 @@ const updatePlayer = async (req, res) => {
     }
 
     await db.query(
-      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, photo_url=?
+      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, allergies=?, photo_url=?
        WHERE id=?`,
-      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, photo_url, id]
+      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, photo_url, id]
     );
 
     res.status(200).json({ message: "Jugador actualizado correctamente" });

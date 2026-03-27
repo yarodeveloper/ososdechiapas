@@ -10,13 +10,13 @@ const seed = async () => {
 
     // ── Categorías (sin min_age / max_age — no existen en el schema real) ───
     const categories = [
-      ['Tiny Tot',      'Categoría para niños principiantes'],
-      ['Peewee',        'Categoría infantil inicial'],
-      ['Midget',        'Categoría infantil intermedia'],
+      ['Peewee',        'Categoría infantil'],
+      ['Potrillos',     'Categoría infantil inicial'],
       ['Junior Bantam', 'Categoría pre-juvenil'],
       ['Bantam',        'Categoría juvenil inicial'],
-      ['Juvenil',       'Categoría para adolescentes competitivos'],
-      ['Tochito Flag',  'Fútbol bandera, categoría mixta'],
+      ['Juvenil',       'Categoría juvenil competitiva'],
+      ['Flag',          'Tochito mixto'],
+      ['Femenil',       'Varonil / Femenil - Equipado'],
     ];
 
     console.log('📂 Insertando categorías...');

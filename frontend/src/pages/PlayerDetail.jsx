@@ -106,6 +106,7 @@ const PlayerDetail = () => {
           category_id:     p.category_id || '',
           blood_type_id:   p.blood_type_id || '',
           emergency_phone: p.emergency_phone || '',
+          allergies:       p.allergies || '',
         });
         setPositions(await posRes.json());
         setCategories(await catRes.json());
@@ -318,6 +319,9 @@ const PlayerDetail = () => {
               <InfoRow label="Contacto de Emergencia" value={player.emergency_phone}
                 icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.27-.76a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92z"/></svg>}
               />
+              <InfoRow label="Alergias / Padecimientos" value={player.allergies}
+                icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01" /></svg>}
+              />
             </div>
 
             {/* Delete button */}
@@ -378,6 +382,12 @@ const PlayerDetail = () => {
               <input className={inputClass} type="tel" placeholder="961 000 0000"
                 value={formData.emergency_phone}
                 onChange={e => setFormData(p => ({ ...p, emergency_phone: e.target.value }))} />
+            </EditField>
+
+            <EditField label="Alergias / Padecimientos">
+              <input className={inputClass} type="text" placeholder="Ej. Asma, Penicilina..."
+                value={formData.allergies}
+                onChange={e => setFormData(p => ({ ...p, allergies: e.target.value }))} />
             </EditField>
 
             <button

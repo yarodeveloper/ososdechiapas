@@ -72,7 +72,7 @@ const Dashboard = () => {
         <section className="pt-2">
            <div className="w-8 h-1 bg-red-600 mb-4"></div>
            <h1 className="text-4xl font-display font-black uppercase italic italic tracking-tight leading-none mb-1">
-             <span className="text-gradient">¡Hola, Guerro!</span>
+             <span className="text-gradient">¡Hola, Campeón!</span>
            </h1>
            <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">Semana de Playoffs Activa</p>
         </section>

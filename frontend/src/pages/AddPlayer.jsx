@@ -12,7 +12,8 @@ const AddPlayer = () => {
     position_id: '',
     category_id: '',
     blood_type_id: '',
-    emergency_phone: ''
+    emergency_phone: '',
+    allergies: ''
   });
 
   const [photoFile, setPhotoFile] = useState(null);
@@ -244,6 +245,18 @@ const AddPlayer = () => {
                 <path d="M6 9l6 6 6-6"/>
               </svg>
             </div>
+          </div>
+
+          {/* ── Alergias ─────────────────────────────────────────────────────── */}
+          <div>
+            <label className={labelCls}>Alergias / Padecimientos</label>
+            <input
+              type="text" name="allergies"
+              className={inputCls}
+              placeholder="Ej. Alérgico a la penicilina, Asma..."
+              value={formData.allergies}
+              onChange={handleInputChange}
+            />
           </div>
 
           {/* ── Contacto de Emergencia ───────────────────────────────────── */}

@@ -50,7 +50,9 @@ CREATE TABLE IF NOT EXISTS players (
 -- Migración forzada si la tabla ya existía con esquema viejo
 ALTER TABLE players ADD COLUMN IF NOT EXISTS name VARCHAR(100) AFTER id;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS curp VARCHAR(18) AFTER birth_date;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS photo_url VARCHAR(255) AFTER curp;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS emergency_phone VARCHAR(20) AFTER photo_url;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS allergies TEXT AFTER emergency_phone;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS position_id INT AFTER user_id;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS blood_type_id INT AFTER category_id;
 
