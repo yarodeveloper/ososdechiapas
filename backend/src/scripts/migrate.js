@@ -22,9 +22,13 @@ const migrate = async () => {
             
             try {
                 await db.query(cleanQuery);
-                console.log('Executed:', cleanQuery.substring(0, 50) + '...');
+                console.log('Executed:', cleanQuery.substring(0, 50).trim() + '...');
             } catch (queryErr) {
-                console.warn('Query failed (skipping):', cleanQuery.substring(0, 50) + '...', queryErr.message);
+                if (queryErr.errno === 1060 || queryErr.errno === 1061 || queryErr.errno === 1062) {
+                    console.log('  ⚠️ Ya existe o duplicado, saltando...');
+                } else {
+                    console.warn('  ❌ Fallo:', queryErr.message);
+                }
             }
         }
         console.log('Migration process finished!');

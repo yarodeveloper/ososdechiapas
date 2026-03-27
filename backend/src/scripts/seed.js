@@ -9,9 +9,11 @@ const seed = async () => {
     console.log('🌱 Iniciando seed...\n');
 
     // ── Limpiar antes de sembrar ───────────────────────────────────────────
-    console.log('🧹 Limpiando categorías anteriores...');
+    console.log('🧹 Limpiando catálogos anteriores...');
     await db.query('SET FOREIGN_KEY_CHECKS=0');
     await db.query('DELETE FROM categories');
+    await db.query('DELETE FROM catalogs_positions');
+    await db.query('DELETE FROM catalogs_blood_types');
     await db.query('SET FOREIGN_KEY_CHECKS=1');
 
     // ── Categorías (sin min_age / max_age — no existen en el schema real) ───
