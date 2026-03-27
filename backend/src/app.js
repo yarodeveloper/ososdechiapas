@@ -11,7 +11,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // En un entorno de producción, especifica el dominio del frontend
+    origin: "*", 
     methods: ["GET", "POST"]
   }
 });
@@ -30,12 +30,21 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
 app.use(express.static(frontendPath));
 
+// Import Routes
+const playerRoutes = require('./routes/player.routes');
+const categoryRoutes = require('./routes/category.routes');
+const userRoutes = require('./routes/user.routes');
+const teamRoutes = require('./routes/teams.routes');
+const matchRoutes = require('./routes/matches.routes');
+const catalogRoutes = require('./routes/catalogs.routes');
+const leadRoutes = require('./routes/lead.routes');
+
 // API Routes
 app.use('/api/players', playerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/teams', teamRoutes);
-app.use('/api/matches', matchRoutes);
+app.use('/api/matches', matchRoutes); // Includes details and update-live
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
