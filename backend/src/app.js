@@ -54,10 +54,14 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
-// Catch-all to serve frontend's index.html (Express 5 & Node 24 Compatibility)
-// Use (.*) as the wildcard for Express 5
-app.get('(.*)', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// Catch-all to serve frontend's index.html (Express 5 & Node 24 NO ASTERISKS FIX)
+// We use a middleware to avoid the path-to-regexp error entirely
+app.use((req, res, next) => {
+  // If it's not an API call and not an upload, serve index.html
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+    return res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+  next();
 });
 
 // Socket.io Logic
