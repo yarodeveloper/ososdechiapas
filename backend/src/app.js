@@ -49,7 +49,7 @@ app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
 // Catch-all to serve frontend's index.html for SPA routing
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
