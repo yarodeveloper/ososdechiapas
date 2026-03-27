@@ -9,6 +9,8 @@ require('dotenv').config();
 
 const app = express();
 const httpServer = createServer(app);
+
+// Configuración de Socket.io
 const io = new Server(httpServer, {
   cors: {
     origin: "*", 
@@ -23,20 +25,22 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Dynamic Frontend Path (Detecting Windows or VPS)
-const frontendPath = process.platform === 'win32' 
+// DETECCIÓN DE RUTAS SEGÚN EL ENTORNO
+const isWindows = process.platform === 'win32';
+const publicPath = isWindows 
     ? path.join(__dirname, '..', '..', 'frontend', 'dist')
     : '/home/ososdechiapas.com/public_html';
 
-console.log(`Serving static files from: ${frontendPath}`);
+console.log(`Modo: ${isWindows ? 'Desarrollo' : 'Producción (VPS)'}`);
+console.log(`Sirviendo archivos desde: ${publicPath}`);
 
-// Serve Static Uploads (Common for both)
+// Carpeta de subidas
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Serve Frontend Static Files
-app.use(express.static(frontendPath));
+// Archivos estáticos del frontend
+app.use(express.static(publicPath));
 
-// Import Routes
+// Rutas de la API
 const playerRoutes = require('./routes/player.routes');
 const categoryRoutes = require('./routes/category.routes');
 const userRoutes = require('./routes/user.routes');
@@ -45,7 +49,6 @@ const matchRoutes = require('./routes/matches.routes');
 const catalogRoutes = require('./routes/catalogs.routes');
 const leadRoutes = require('./routes/lead.routes');
 
-// API Routes
 app.use('/api/players', playerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
@@ -54,34 +57,39 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
-// Catch-all to serve frontend's index.html (Express 5 & Node 24 NO ASTERISKS FIX)
-// We use a middleware to avoid the path-to-regexp error entirely
+// CATCH-ALL PARA SPA (SIN ASTERISCOS PARA EVITAR CRASH EN EXPRESS 5)
+// Este middleware captura cualquier ruta que no sea de la API y sirve el index.html
 app.use((req, res, next) => {
-  // If it's not an API call and not an upload, serve index.html
   if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
-    return res.sendFile(path.join(frontendPath, 'index.html'));
+    return res.sendFile(path.join(publicPath, 'index.html'));
   }
   next();
 });
 
-// Socket.io Logic
+// Lógica de Sockets para tiempo real
 io.on('connection', (socket) => {
-  console.log('Cliente conectado:', socket.id);
+  console.log('Usuario conectado:', socket.id);
+
   socket.on('join_match', (matchId) => {
     socket.join(`match_${matchId}`);
-    console.log(`Socket ${socket.id} se unió al partido ${matchId}`);
+    console.log(`Usuario unido al partido: ${matchId}`);
   });
+
   socket.on('update_match_state', (data) => {
+    // Retransmitir actualización a todos los clientes en ese partido
     io.to(`match_${data.matchId}`).emit('match_updated', data);
   });
+
   socket.on('disconnect', () => {
-    console.log('Cliente desconectado:', socket.id);
+    console.log('Usuario desconectado');
   });
 });
 
 const PORT = 3001;
 httpServer.listen(PORT, () => {
-  console.log(`Server (HTTP & Socket.io) running on port ${PORT}`);
+  console.log(`==== SISTEMA EN LÍNEA ====`);
+  console.log(`Puerto: ${PORT}`);
+  console.log(`Ruta: ${publicPath}`);
 });
 
 module.exports = app;
