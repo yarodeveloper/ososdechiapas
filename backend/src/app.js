@@ -25,11 +25,9 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// DETECCIÓN DE RUTAS SEGÚN EL ENTORNO
+// RUTA AL FRONTEND COMPILADO (relativa al archivo, funciona en dev y prod)
 const isWindows = process.platform === 'win32';
-const publicPath = isWindows 
-    ? path.join(__dirname, '..', '..', 'frontend', 'dist')
-    : '/home/ososdechiapas.com/public_html';
+const publicPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
 
 console.log(`Modo: ${isWindows ? 'Desarrollo' : 'Producción (VPS)'}`);
 console.log(`Sirviendo archivos desde: ${publicPath}`);
