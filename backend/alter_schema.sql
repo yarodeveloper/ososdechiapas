@@ -18,6 +18,11 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Forzar Unicidad en tablas existentes
+ALTER TABLE categories ADD UNIQUE INDEX IF NOT EXISTS (name);
+ALTER TABLE catalogs_positions ADD UNIQUE INDEX IF NOT EXISTS (name);
+ALTER TABLE catalogs_blood_types ADD UNIQUE INDEX IF NOT EXISTS (name);
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,

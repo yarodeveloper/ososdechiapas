@@ -8,6 +8,12 @@ const seed = async () => {
   try {
     console.log('🌱 Iniciando seed...\n');
 
+    // ── Limpiar antes de sembrar ───────────────────────────────────────────
+    console.log('🧹 Limpiando categorías anteriores...');
+    await db.query('SET FOREIGN_KEY_CHECKS=0');
+    await db.query('DELETE FROM categories');
+    await db.query('SET FOREIGN_KEY_CHECKS=1');
+
     // ── Categorías (sin min_age / max_age — no existen en el schema real) ───
     const categories = [
       ['Peewee',        'Categoría infantil'],
