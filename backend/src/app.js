@@ -26,8 +26,8 @@ app.use(express.urlencoded({ extended: true }));
 // Serve Static Uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Serve Frontend Static Files (Vite dist)
-const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
+// Serve Frontend Static Files (from the root of public_html)
+const frontendPath = path.join(__dirname, '..', '..');
 app.use(express.static(frontendPath));
 
 // Import Routes
@@ -49,6 +49,7 @@ app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
 
 // Catch-all to serve frontend's index.html for SPA routing (Express 5 Syntax)
+// Use :path* for catch-all in Express 5
 app.get('/:path*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
