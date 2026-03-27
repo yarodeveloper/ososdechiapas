@@ -18,10 +18,16 @@ const Dashboard = () => {
     const fetchMatches = async () => {
       try {
         const res = await fetch('/api/matches/dashboard');
+        if (!res.ok) return; // Mantener estado default si hay error
         const data = await res.json();
-        setDashboardData(data);
+        // Validar estructura antes de setear
+        setDashboardData({
+          nextMatch: data.nextMatch || null,
+          lastResults: Array.isArray(data.lastResults) ? data.lastResults : []
+        });
       } catch (err) {
         console.error('Data error', err);
+        // Estado default ya está, no hay crash
       }
     };
     fetchMatches();

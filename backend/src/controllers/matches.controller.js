@@ -3,12 +3,12 @@ const db = require('../config/db.js');
 const getDashboardMatches = async (req, res) => {
   try {
     const nextMatchQuery = `
-      SELECT m.*, 
-             local.name as local_name, local.logo_url as local_logo, 
+      SELECT m.*,
+             local.name as local_name, local.logo_url as local_logo,
              visitor.name as visitor_name, visitor.logo_url as visitor_logo
       FROM matches m
-      JOIN teams local ON m.local_team_id = local.id
-      JOIN teams visitor ON m.visitor_team_id = visitor.id
+      LEFT JOIN teams local   ON m.local_team_id   = local.id
+      LEFT JOIN teams visitor ON m.visitor_team_id = visitor.id
       WHERE m.match_date > NOW()
       ORDER BY m.match_date ASC
       LIMIT 1
@@ -16,12 +16,12 @@ const getDashboardMatches = async (req, res) => {
     const [nextMatchResult] = await db.query(nextMatchQuery);
 
     const lastResultsQuery = `
-      SELECT m.*, 
-             local.name as local_name, local.logo_url as local_logo, 
+      SELECT m.*,
+             local.name as local_name, local.logo_url as local_logo,
              visitor.name as visitor_name, visitor.logo_url as visitor_logo
       FROM matches m
-      JOIN teams local ON m.local_team_id = local.id
-      JOIN teams visitor ON m.visitor_team_id = visitor.id
+      LEFT JOIN teams local   ON m.local_team_id   = local.id
+      LEFT JOIN teams visitor ON m.visitor_team_id = visitor.id
       WHERE m.match_date < NOW()
       ORDER BY m.match_date DESC
       LIMIT 2
@@ -29,12 +29,12 @@ const getDashboardMatches = async (req, res) => {
     const [lastResults] = await db.query(lastResultsQuery);
 
     res.status(200).json({
-      nextMatch: nextMatchResult[0] || null,
-      lastResults: lastResults
+      nextMatch:   nextMatchResult[0] || null,
+      lastResults: lastResults || []
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error", error: error.message });
+    console.error('[getDashboardMatches]', error.message);
+    res.status(500).json({ message: 'Error', error: error.message });
   }
 };
 
