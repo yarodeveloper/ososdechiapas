@@ -3,7 +3,7 @@ const db = require('../config/db');
 // Get all parents (to populate the select field in the registration form)
 const getAllParents = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT id, name, email FROM users WHERE role = 'parent' ORDER BY name ASC");
+    const [rows] = await db.query("SELECT id, name, email FROM users WHERE role = 'family' ORDER BY name ASC");
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving parents', error: error.message });
@@ -19,8 +19,8 @@ const createParent = async (req, res) => {
       return res.status(400).json({ message: 'Nombre y correo son requeridos' });
     }
 
-    // Role is hardcoded to 'parent' for this method
-    const role = 'parent';
+    // Role is hardcoded to 'family' to match the rest of the codebase
+    const role = 'family';
     // Password hash should be handled here, but looking at seed it uses 'temp_password_hash'
     // I'll use a placeholder or the provided password if encryption is not yet established in this project
     const password_hash = password || 'osos2026'; 
