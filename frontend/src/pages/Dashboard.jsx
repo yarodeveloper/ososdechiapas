@@ -17,17 +17,18 @@ const Dashboard = () => {
 
     const fetchMatches = async () => {
       try {
-        const res = await fetch('/api/matches/dashboard');
-        if (!res.ok) return; // Mantener estado default si hay error
-        const data = await res.json();
-        // Validar estructura antes de setear
+        const [nextRes, pastRes] = await Promise.all([
+          fetch('/api/calendar'),
+          fetch('/api/calendar?history=true')
+        ]);
+        const nextData = await nextRes.json();
+        const pastData = await pastRes.json();
         setDashboardData({
-          nextMatch: data.nextMatch || null,
-          lastResults: Array.isArray(data.lastResults) ? data.lastResults : []
+          nextMatch: nextData.find(e => e.event_type === 'match') || null,
+          lastResults: Array.isArray(pastData) ? pastData.slice(0, 3) : []
         });
       } catch (err) {
         console.error('Data error', err);
-        // Estado default ya está, no hay crash
       }
     };
     fetchMatches();
@@ -94,8 +95,8 @@ const Dashboard = () => {
              <div className="flex flex-col items-center gap-10 relative z-10">
                 <div className="flex items-center justify-between w-full relative">
                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-lg">
-                         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                      <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-lg overflow-hidden p-2">
+                         <img src="/logo_osos.webp" alt="Osos" className="w-full h-full object-contain" />
                       </div>
                       <span className="text-[11px] font-black uppercase tracking-[0.1em]">Osos</span>
                    </div>
@@ -105,15 +106,19 @@ const Dashboard = () => {
                    </div>
 
                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-black/20 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-black/10 shadow-lg">
-                         <span className="text-2xl font-display font-black italic italic opacity-60 truncate max-w-[40px] uppercase">R</span>
+                      <div className="w-16 h-16 bg-black/20 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-black/10 shadow-lg overflow-hidden p-1">
+                         {nextMatch.rival_logo ? (
+                            <img src={nextMatch.rival_logo} alt="Rival" className="w-full h-full object-contain bg-white rounded-2xl" />
+                         ) : (
+                            <span className="text-2xl font-display font-black italic italic opacity-60 truncate max-w-[40px] uppercase">R</span>
+                         )}
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.1em] truncate max-w-[60px]">{(nextMatch && nextMatch.visitor_name ? nextMatch.visitor_name : 'RIVAL').split(' ')[0]}</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.1em] truncate max-w-[60px]">{(nextMatch && nextMatch.rival_name ? nextMatch.rival_name : 'RIVAL').split(' ')[0]}</span>
                    </div>
                 </div>
                 <div className="text-center w-full bg-black/20 py-4 px-6 rounded-2xl border border-white/5">
-                   <p className="text-lg font-display font-black uppercase tracking-widest leading-none mb-1">{formatDate(nextMatch.match_date)}</p>
-                   <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">{nextMatch.home_stadium || 'Estadio Central'}</p>
+                   <p className="text-lg font-display font-black uppercase tracking-widest leading-none mb-1">{formatDate(nextMatch.start_time)}</p>
+                   <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">{nextMatch.location_name || 'Estadio Central'}</p>
                 </div>
              </div>
            ) : (
@@ -127,9 +132,9 @@ const Dashboard = () => {
         <section className="grid grid-cols-4 gap-3">
            {[
              { label: 'Roster', icon: 'group', link: '/players/list' },
-             { label: 'Pagos', icon: 'table', link: '#' },
-             { label: 'Stats', icon: 'analytics', link: '#' },
-             { label: 'Chat', icon: 'comment', link: '#' }
+             { label: 'Pagos', icon: 'table', link: '/admin/payments' },
+             { label: 'Stats', icon: 'analytics', link: '/estadisticas' },
+             { label: 'Avisos', icon: 'comment', link: '/admin/announcements' }
            ].map((item, i) => (
              <Link key={i} to={item.link} className="flex flex-col items-center gap-2.5 group active:scale-90 transition-all">
                 <div className="w-[70px] h-[70px] card flex items-center justify-center border-zinc-800/60 shadow-md">
@@ -148,25 +153,42 @@ const Dashboard = () => {
            </div>
            <div className="flex gap-4 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar touch-pan-x">
               {lastResults.length > 0 ? lastResults.map(match => (
-                <div key={match.id} className="min-w-[240px] card p-6 flex flex-col gap-6 active:border-red-600/30">
-                   <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-black/30 px-3 py-1 rounded-full border border-white/5">Sept 22</span>
-                      <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-[0.15em] ${match.home_score > match.visitor_score ? 'bg-green-600/10 text-green-500' : 'bg-red-600/10 text-red-500'}`}>
-                         {match.home_score > match.visitor_score ? 'Win' : 'Loss'}
-                      </span>
-                   </div>
-                   <div className="space-y-4">
-                       <div className="flex justify-between items-end">
-                          <div className="flex flex-col">
-                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none">Osos</span>
-                             <span className="text-3xl font-display font-black italic italic leading-none">{match.home_score}</span>
-                          </div>
-                          <div className="text-[10px] font-black opacity-20 pb-1">VS</div>
-                          <div className="flex flex-col items-end">
-                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none truncate max-w-[80px]">{(match.visitor_name || 'RIVAL').split(' ')[0]}</span>
-                             <span className="text-3xl font-display font-black italic italic leading-none">{match.visitor_score}</span>
-                          </div>
+                 <div key={match.id} className={`min-w-[250px] card p-6 flex flex-col gap-6 transition-all border ${match.stats_count > 0 ? 'border-red-600/50 bg-red-900/10 relative overflow-hidden' : 'border-zinc-800/60 active:border-red-600/30'}`}>
+                    {match.stats_count > 0 && <div className="absolute top-0 right-0 w-12 h-12 bg-red-600/20 blur-[20px] pointer-events-none"></div>}
+                    <div className="flex justify-between items-center relative z-10">
+                       <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-red-600 uppercase tracking-widest leading-none mb-1">{match.category_name || 'PARTIDO'}</span>
+                          <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-black/30 px-3 py-1 rounded-full border border-white/5 inline-block w-fit">
+                             {new Date(match.match_date || match.start_time).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase()}
+                          </span>
                        </div>
+                       <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-[0.15em] ${match.score_osos > match.score_rival ? 'bg-green-600/10 text-green-500' : 'bg-red-600/10 text-red-500'}`}>
+                          {match.score_osos > match.score_rival ? 'Victoria' : 'Derrota'}
+                       </span>
+                    </div>
+                    <div className="space-y-4 relative z-10">
+                        <div className="flex justify-between items-end">
+                           <div className="flex flex-col">
+                              <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none">Osos</span>
+                              <span className="text-3xl font-display font-black italic leading-none">{match.score_osos || 0}</span>
+                           </div>
+                           <div className="text-[10px] font-black opacity-20 pb-1">VS</div>
+                           <div className="flex flex-col items-end">
+                              <span className="text-xs font-black uppercase tracking-widest text-zinc-500 leading-none truncate max-w-[80px]">{(match.rival_name || 'RIVAL').split(' ')[0]}</span>
+                              <span className="text-3xl font-display font-black italic leading-none">{match.score_rival || 0}</span>
+                           </div>
+                        </div>
+                       
+                       {/* Botón rápido para capturar stats del partido */}
+                       <Link 
+                          to={`/admin/matches/${match.id}/stats`}
+                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-red-600 transition-colors group/btn"
+                       >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-zinc-600 group-hover/btn:text-red-500 transition-colors">
+                             <path d="M12 20V10M18 20V4M6 20v-6" />
+                          </svg>
+                          <span className={`${match.stats_count > 0 ? 'text-red-500' : 'text-zinc-500'} text-[9px] font-black uppercase tracking-widest group-hover/btn:text-white transition-colors`}>{match.stats_count > 0 ? 'Editar Stats' : 'Registrar Stats'}</span>
+                       </Link>
                    </div>
                 </div>
               )) : (
@@ -184,10 +206,10 @@ const Dashboard = () => {
                <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/dashboard' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Feed</span>
             </Link>
-            <button className="flex flex-col items-center gap-1.5 text-zinc-600 active:scale-90 transition-all">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <Link to="/admin/calendar" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/calendar' ? 'text-red-600' : 'text-zinc-600'} active:scale-90 transition-all`}>
+               <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/calendar' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Agenda</span>
-            </button>
+            </Link>
             <div className="relative -top-10">
                <div className="w-16 h-16 bg-red-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-red-900/60 border-4 border-black active:scale-[0.85] transition-transform">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -198,10 +220,10 @@ const Dashboard = () => {
                <span className="absolute -top-1 right-2 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-black"></span>
                <span className="text-[10px] font-black uppercase tracking-widest">Inbox</span>
             </button>
-            <button className="flex flex-col items-center gap-1.5 text-zinc-600 active:scale-90 transition-all">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33-1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <Link to="/admin/settings" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/settings' ? 'text-red-600' : 'text-zinc-600'} active:scale-90 transition-all`}>
+               <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/settings' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33-1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Config</span>
-            </button>
+            </Link>
          </div>
       </nav>
     </div>

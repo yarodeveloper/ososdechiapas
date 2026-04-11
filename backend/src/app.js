@@ -25,6 +25,12 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware para pasar IO a las rutas
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 // RUTA AL FRONTEND COMPILADO (relativa al archivo, funciona en dev y prod)
 const isWindows = process.platform === 'win32';
 const publicPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
@@ -46,6 +52,13 @@ const teamRoutes = require('./routes/teams.routes');
 const matchRoutes = require('./routes/matches.routes');
 const catalogRoutes = require('./routes/catalogs.routes');
 const leadRoutes = require('./routes/lead.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const authRoutes = require('./routes/auth.routes');
+const settingsRoutes = require('./routes/settings.routes');
+const announcementRoutes = require('./routes/announcement.routes');
+const statsRoutes = require('./routes/stats.routes');
+const calendarRoutes = require('./routes/calendar.routes');
+const socialRoutes = require('./routes/social.routes');
 
 app.use('/api/players', playerRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -54,6 +67,13 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/catalogs', catalogRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/social', socialRoutes);
 
 // CATCH-ALL PARA SPA (SIN ASTERISCOS PARA EVITAR CRASH EN EXPRESS 5)
 // Este middleware captura cualquier ruta que no sea de la API y sirve el index.html

@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.get('/dashboard', getDashboardMatches);
 router.get('/live', getLiveMatch);
-router.get('/details/:id', getMatchDetails);
+router.get('/details/:id', getMatchDetails); // Legacy/specific
+router.get('/:id', getMatchDetails);         // Standard access
 router.post('/update-live/:id', updateLiveMatch);
 
 module.exports = router;

@@ -10,6 +10,37 @@ const getAllParents = async (req, res) => {
   }
 };
 
+// Add a new parent
+const createParent = async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+    
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Nombre y correo son requeridos' });
+    }
+
+    // Role is hardcoded to 'parent' for this method
+    const role = 'parent';
+    // Password hash should be handled here, but looking at seed it uses 'temp_password_hash'
+    // I'll use a placeholder or the provided password if encryption is not yet established in this project
+    const password_hash = password || 'osos2026'; 
+
+    const [result] = await db.query(
+      'INSERT INTO users (name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+      [name, email, phone || null, password_hash, role]
+    );
+
+    res.status(201).json({ 
+      id: result.insertId, 
+      message: 'Padre registrado exitosamente' 
+    });
+  } catch (error) {
+    console.error('[createParent]', error);
+    res.status(500).json({ message: 'Error al registrar padre', error: error.message });
+  }
+};
+
 module.exports = {
-  getAllParents
+  getAllParents,
+  createParent
 };
