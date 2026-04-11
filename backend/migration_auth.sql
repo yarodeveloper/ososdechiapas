@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN is_first_login TINYINT(1) DEFAULT 1 AFTER role;

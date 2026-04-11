@@ -34,7 +34,8 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        avatar_url: user.avatar_url
+        avatar_url: user.avatar_url,
+        is_first_login: user.is_first_login === 1
       },
       token: 'mock-jwt-token-' + user.id // Placeholder token
     });
@@ -45,6 +46,36 @@ const login = async (req, res) => {
   }
 };
 
+/**
+ * Handle forced password reset on first login
+ */
+const updateFirstPassword = async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+
+    if (!userId || !newPassword) {
+      return res.status(400).json({ message: 'Usuario y nueva contraseña son requeridos' });
+    }
+
+    // In a real app we'd hash the new password using bcrypt
+    const [result] = await db.query(
+      'UPDATE users SET password_hash = ?, is_first_login = 0 WHERE id = ?',
+      [newPassword, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Contraseña actualizada exitosamente' });
+
+  } catch (error) {
+    console.error('[Update Password Error]', error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+  }
+};
+
 module.exports = {
-  login
+  login,
+  updateFirstPassword
 };
