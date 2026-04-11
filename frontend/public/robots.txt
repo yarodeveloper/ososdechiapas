@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /estadisticas
+Allow: /registro
+Allow: /login
+
+# Bloquear rutas privadas del admin y portal
+Disallow: /admin/
+Disallow: /portal/
+Disallow: /api/
+Disallow: /players/
+Disallow: /teams/
+Disallow: /game-center/
+
+Sitemap: https://ososdechiapas.com/sitemap.xml

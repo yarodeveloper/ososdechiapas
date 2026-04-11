@@ -70,7 +70,7 @@ const PlayerCard = ({ player, index }) => {
             </span>
           )}
           {player.position_name && (
-            <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-red-600 uppercase tracking-wider">
               {player.position_name.replace(/\s*\([^)]*\)/, '')}
             </span>
           )}
@@ -195,7 +195,7 @@ const PlayerList = () => {
         <div className="mb-6 pt-4">
           <div className="w-8 h-0.5 bg-red-600 mb-3" />
           <h1 className="text-3xl font-black uppercase italic leading-none mb-1">
-            Directorio de <span className="text-red-500">Jugadores</span>
+            Directorio de <span className="text-red-600">Jugadores</span>
           </h1>
           <p className="text-zinc-500 text-xs font-medium">
             {loading ? 'Cargando...' : (
@@ -272,7 +272,7 @@ const PlayerList = () => {
               {searchText && (
                 <button
                   onClick={() => setSearchText('')}
-                  className="mt-3 text-red-500 text-xs font-bold uppercase tracking-widest"
+                  className="mt-3 text-red-600 text-xs font-bold uppercase tracking-widest"
                 >
                   Limpiar búsqueda
                 </button>
@@ -305,7 +305,7 @@ const PlayerList = () => {
             <span className="text-[8px] font-bold uppercase tracking-widest">Inicio</span>
           </Link>
 
-          <Link to="/players/list" className="flex flex-col items-center gap-1 text-red-500">
+          <Link to="/players/list" className="flex flex-col items-center gap-1 text-red-600">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
               <circle cx="9" cy="7" r="4" />

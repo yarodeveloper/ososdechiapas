@@ -215,11 +215,14 @@ const Dashboard = () => {
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><path d="M12 5v14M5 12h14"/></svg>
                </div>
             </div>
-            <button className="flex flex-col items-center gap-1.5 text-zinc-600 active:scale-90 transition-all relative">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-               <span className="absolute -top-1 right-2 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-black"></span>
-               <span className="text-[10px] font-black uppercase tracking-widest">Inbox</span>
-            </button>
+                         <Link
+               to="/admin/announcements"
+               className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/announcements' ? 'text-red-600' : 'text-zinc-600'} active:scale-90 transition-all relative`}
+             >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/announcements' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-black"></span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Inbox</span>
+             </Link>
             <Link to="/admin/settings" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/settings' ? 'text-red-600' : 'text-zinc-600'} active:scale-90 transition-all`}>
                <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/settings' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33-1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Config</span>
