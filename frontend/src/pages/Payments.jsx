@@ -144,6 +144,67 @@ const Payments = () => {
 
             <main className="max-w-md mx-auto px-6 pt-24 space-y-8">
                 
+                {/* New Charge Form */}
+                {showNewCharge && (
+                    <section className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 animate-slide-up shadow-2xl">
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 leading-none">
+                            Generar<br/><span className="text-red-600">Nuevo Cobro</span>
+                        </h2>
+                        <form onSubmit={handleNewCharge} className="space-y-6">
+                            <select 
+                                required 
+                                value={formData.user_id} 
+                                onChange={e => setFormData({ ...formData, user_id: e.target.value })}
+                                className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-[10px] font-black uppercase outline-none focus:border-red-600 text-zinc-400"
+                            >
+                                <option value="">SELECCIONAR PADRE/TUTOR</option>
+                                {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+                            </select>
+
+                            <input 
+                                required 
+                                value={formData.description} 
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:border-red-600 text-white placeholder-zinc-700" 
+                                placeholder="Concepto del cobro (Ej: Colegiatura Abril)" 
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <input 
+                                    required 
+                                    type="number" 
+                                    min="0"
+                                    step="0.01"
+                                    value={formData.amount} 
+                                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                                    className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm font-black outline-none focus:border-red-600 text-white placeholder-zinc-700" 
+                                    placeholder="Monto $" 
+                                />
+                                <input 
+                                    required 
+                                    type="date" 
+                                    value={formData.due_date} 
+                                    onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                                    className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm font-black outline-none focus:border-red-600 text-zinc-400" 
+                                />
+                            </div>
+
+                            <select 
+                                value={formData.category_id} 
+                                onChange={e => setFormData({ ...formData, category_id: e.target.value })}
+                                className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-[10px] font-black uppercase outline-none focus:border-red-600 text-zinc-400"
+                            >
+                                <option value="">APLICA A CATEGORÍA (OPCIONAL)</option>
+                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+
+                            <button type="submit" className="w-full bg-red-600 py-5 rounded-[2rem] font-black uppercase text-xs tracking-widest active:scale-95 transition-all shadow-xl shadow-red-900/20">
+                                EMITIR CARGO
+                            </button>
+                        </form>
+                    </section>
+                )}
+
                 {/* Pending Validations Banner */}
                 {pendingValidations.length > 0 && (
                     <section className="bg-amber-600/10 border border-amber-600/20 p-6 rounded-[2rem] space-y-4 animate-fade shadow-2xl shadow-amber-900/5">

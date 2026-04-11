@@ -13,6 +13,9 @@ const AdminSettings = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
 
+    // Security state
+    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+
     // Social Links state
     const [socialPosts, setSocialPosts] = useState([]);
     const [newSocialUrl, setNewSocialUrl] = useState('');
@@ -72,6 +75,40 @@ const AdminSettings = () => {
             await fetch(`/api/social/${id}`, { method: 'DELETE' });
             await fetchSocialPosts();
         } catch(e) {}
+    };
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        setMessage(null);
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setMessage({ type: 'error', text: 'Las contraseñas no coinciden' });
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            setMessage({ type: 'error', text: 'Mínimo 6 caracteres' });
+            return;
+        }
+        
+        setSaving(true);
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const res = await fetch('/api/auth/update-first-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, newPassword: passwordData.newPassword })
+            });
+            if (res.ok) {
+                setMessage({ type: 'success', text: '¡Contraseña actualizada!' });
+                setPasswordData({ newPassword: '', confirmPassword: '' });
+                setTimeout(() => setView('menu'), 2000);
+            } else {
+                setMessage({ type: 'error', text: 'Error al cambiar contraseña' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error de conexión' });
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleSave = async (e) => {
@@ -139,6 +176,14 @@ const AdminSettings = () => {
             icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 
             path: '/admin/calendar', 
             color: 'text-amber-500' 
+        },
+        { 
+            id: 'security', 
+            title: 'Seguridad', 
+            desc: 'Cambiar mi clave de acceso',
+            icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 
+            action: () => setView('security'), 
+            color: 'text-zinc-400' 
         }
     ];
 
@@ -152,7 +197,7 @@ const AdminSettings = () => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     </button>
                     <h1 className="text-xl font-black uppercase italic tracking-tighter">
-                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
+                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : view === 'security' ? 'Seguridad' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
                     </h1>
                 </div>
             </header>
@@ -291,6 +336,53 @@ const AdminSettings = () => {
                             )}
                         </section>
                     </div>
+                ) : view === 'security' ? (
+                    <form onSubmit={handlePasswordChange} className="space-y-8 animate-fade">
+                        <section className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 space-y-6">
+                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Actualiza tu acceso administrativo</p>
+                            
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nueva Contraseña</label>
+                                    <input 
+                                        type="password"
+                                        required
+                                        className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all text-white font-bold tracking-widest placeholder:text-zinc-800"
+                                        placeholder="••••••••"
+                                        value={passwordData.newPassword}
+                                        onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Confirmar Contraseña</label>
+                                    <input 
+                                        type="password"
+                                        required
+                                        className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all text-white font-bold tracking-widest placeholder:text-zinc-800"
+                                        placeholder="••••••••"
+                                        value={passwordData.confirmPassword}
+                                        onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        </section>
+
+                        {message && (
+                            <div className={`p-4 rounded-xl text-center text-[10px] font-black uppercase tracking-widest animate-shake
+                                ${message.type === 'success' ? 'bg-green-600/10 text-green-500 border border-green-600/20' : 'bg-red-600/10 text-red-500 border border-red-600/20'}
+                            `}>
+                                {message.text}
+                            </div>
+                        )}
+
+                        <button 
+                            type="submit"
+                            disabled={saving}
+                            className="w-full bg-red-600 text-white py-5 rounded-[2rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-red-900/40 active:scale-95 transition-all disabled:opacity-50"
+                        >
+                            {saving ? 'PROCESANDO...' : 'ACTUALIZAR CONTRASEÑA'}
+                        </button>
+                    </form>
                 ) : null}
 
             </main>
