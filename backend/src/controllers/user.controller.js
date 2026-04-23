@@ -40,7 +40,27 @@ const createParent = async (req, res) => {
   }
 };
 
+// Update user password
+const updatePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'La nueva contraseña es requerida' });
+    }
+
+    await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [password, id]);
+
+    res.json({ success: true, message: 'Contraseña actualizada correctamente' });
+  } catch (error) {
+    console.error('[updatePassword]', error);
+    res.status(500).json({ message: 'Error al actualizar contraseña', error: error.message });
+  }
+};
+
 module.exports = {
   getAllParents,
-  createParent
+  createParent,
+  updatePassword
 };

@@ -178,26 +178,43 @@ const AdminSettings = () => {
             color: 'text-amber-500' 
         },
         { 
+            id: 'theme', 
+            title: 'Apariencia del Sistema', 
+            desc: 'Cambiar entre modo obscuro y gris',
+            icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z', 
+            action: () => setView('theme'), 
+            color: 'text-zinc-400' 
+        },
+        { 
             id: 'security', 
             title: 'Seguridad', 
             desc: 'Cambiar mi clave de acceso',
             icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 
             action: () => setView('security'), 
-            color: 'text-zinc-400' 
+            color: 'text-red-600' 
         }
     ];
 
-    if (loading) return <div className="bg-black min-h-screen flex items-center justify-center text-white">Cargando...</div>;
+    if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>Cargando...</div>;
+
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+    const toggleTheme = (newTheme) => {
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        setMessage({ type: 'success', text: `Tema ${newTheme === 'dark' ? 'Obscuro' : 'Gris'} aplicado` });
+        setTimeout(() => setMessage(null), 2000);
+    };
 
     return (
-        <div className="bg-[#050505] min-h-screen text-white font-outfit pb-20 overflow-x-hidden">
-            <header className="p-6 border-b border-white/5 sticky top-0 bg-black/80 backdrop-blur-md z-50">
+        <div className="min-h-screen pb-20 overflow-x-hidden transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
+            <header className="p-6 border-b z-50 sticky top-0 backdrop-blur-md" style={{ borderColor: 'var(--border-main)', backgroundColor: 'var(--bg-header)' }}>
                 <div className="max-w-md mx-auto flex items-center gap-4">
-                    <button onClick={() => view === 'menu' ? navigate('/admin/dashboard') : setView('menu')} className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 hover:text-white transition-all">
+                    <button onClick={() => view === 'menu' ? navigate('/admin/dashboard') : setView('menu')} className="w-10 h-10 rounded-full flex items-center justify-center transition-all" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-dim)' }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     </button>
                     <h1 className="text-xl font-black uppercase italic tracking-tighter">
-                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : view === 'security' ? 'Seguridad' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
+                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : view === 'security' ? 'Seguridad' : view === 'theme' ? 'Apariencia' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
                     </h1>
                 </div>
             </header>
@@ -212,18 +229,18 @@ const AdminSettings = () => {
                             <div 
                                 key={item.id}
                                 onClick={() => item.path ? navigate(item.path) : item.action()}
-                                className="group bg-zinc-950 border border-zinc-900 rounded-[2rem] p-6 flex items-center justify-between hover:border-red-600/50 transition-all cursor-pointer active:scale-95 shadow-xl"
+                                className="group card p-6 flex items-center justify-between cursor-pointer active:scale-95 shadow-xl"
                             >
                                 <div className="flex items-center gap-5">
-                                    <div className={`w-14 h-14 rounded-2xl bg-zinc-900 flex items-center justify-center ${item.color} group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors`}>
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${item.color} group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors`} style={{ backgroundColor: 'var(--bg-main)' }}>
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d={item.icon}/></svg>
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-sm uppercase tracking-wide group-hover:text-red-600 transition-colors">{item.title}</h3>
-                                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{item.desc}</p>
+                                        <h3 className="font-black text-sm uppercase tracking-wide group-hover:text-red-600 transition-colors" style={{ color: 'var(--text-main)' }}>{item.title}</h3>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: 'var(--text-dim)' }}>{item.desc}</p>
                                     </div>
                                 </div>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-zinc-800 group-hover:text-red-600 transition-colors"><path d="M9 18l6-6-6-6"/></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:text-red-600 transition-colors" style={{ color: 'var(--border-main)' }}><path d="M9 18l6-6-6-6"/></svg>
                             </div>
                         ))}
 
@@ -383,6 +400,48 @@ const AdminSettings = () => {
                             {saving ? 'PROCESANDO...' : 'ACTUALIZAR CONTRASEÑA'}
                         </button>
                     </form>
+                ) : view === 'theme' ? (
+                    <div className="space-y-6 animate-fade">
+                        <section className="card p-8 space-y-6">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-center" style={{ color: 'var(--text-dim)' }}>Selecciona la estética del portal</p>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => toggleTheme('dark')}
+                                    className={`flex flex-col items-center gap-4 p-6 rounded-3xl border-2 transition-all ${currentTheme === 'dark' ? 'border-red-600 bg-black shadow-xl scale-105' : 'border-zinc-800 bg-zinc-900 opacity-60'}`}
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Modo Obscuro</span>
+                                </button>
+
+                                <button 
+                                    onClick={() => toggleTheme('gray')}
+                                    className={`flex flex-col items-center gap-4 p-6 rounded-3xl border-2 transition-all ${currentTheme === 'gray' ? 'border-red-600 bg-zinc-100 shadow-xl scale-105' : 'border-zinc-300 bg-zinc-200 opacity-60'}`}
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-zinc-300 flex items-center justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#18181b" strokeWidth="2.5"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Modo Gris</span>
+                                </button>
+                            </div>
+                        </section>
+
+                        {message && (
+                            <div className={`p-4 rounded-xl text-center text-[10px] font-black uppercase tracking-widest animate-shake
+                                ${message.type === 'success' ? 'bg-green-600/10 text-green-500 border border-green-600/20' : 'bg-red-600/10 text-red-500 border border-red-600/20'}
+                            `}>
+                                {message.text}
+                            </div>
+                        )}
+
+                        <div className="pt-6 text-center">
+                            <p className="text-[9px] font-bold uppercase tracking-widest leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                                El cambio se aplicará a todas las secciones <br/> administrativas del portal.
+                            </p>
+                        </div>
+                    </div>
                 ) : null}
 
             </main>

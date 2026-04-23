@@ -103,7 +103,7 @@ const updatePlayer = async (req, res) => {
     const { id } = req.params;
     const { 
       name, birth_date, curp, position_id, category_id, blood_type_id, 
-      emergency_phone, allergies, jersey_number, 
+      emergency_phone, allergies, jersey_number, status,
       parent_name, parent_email, parent_phone 
     } = req.body;
 
@@ -118,9 +118,9 @@ const updatePlayer = async (req, res) => {
 
     // Actualizar datos del jugador
     await db.query(
-      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, allergies=?, jersey_number=?, photo_url=?
+      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, allergies=?, jersey_number=?, photo_url=?, status=?
        WHERE id=?`,
-      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, jersey_number || null, photo_url, id]
+      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, jersey_number || null, photo_url, status || 'active', id]
     );
 
     // Update parent data or create new parent if none exists or assigned to Admin

@@ -23,8 +23,7 @@ const MatchStatsCapture = () => {
                 // 2. Get Roster for that category
                 const pRes = await fetch(`/api/players/category/${mData.category_id}`);
                 const pData = await pRes.json();
-                setPlayers(pData);
-
+                
                 // 3. Get Existing stats if any
                 const perfRes = await fetch(`/api/stats/match/${matchId}/performances`);
                 const perfData = await perfRes.json();
@@ -33,9 +32,13 @@ const MatchStatsCapture = () => {
                     perfMap[p.player_id] = p;
                 });
 
-                // 4. Initialize stats map with existing data or zeros
+                // 4. Filter: Only show active players OR players who already have stats for this match
+                const filteredPlayers = pData.filter(p => (p.status || 'active') === 'active' || perfMap[p.id]);
+                setPlayers(filteredPlayers);
+
+                // 5. Initialize stats map with existing data or zeros
                 const initialStats = {};
-                pData.forEach(p => {
+                filteredPlayers.forEach(p => {
                     if (perfMap[p.id]) {
                         initialStats[p.id] = {
                             ...perfMap[p.id],

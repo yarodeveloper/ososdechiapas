@@ -79,37 +79,38 @@ const ReportPayment = () => {
     };
 
     return (
-        <div className="bg-[#0f0a0a] min-h-screen text-white font-outfit pb-12">
+        <div className="min-h-screen font-outfit pb-12 transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
             <div className="max-w-md mx-auto">
                 
                 {/* ── Header ────────────────────────────────────────────────────────── */}
-                <header className="px-6 py-6 flex justify-between items-center">
+                <header className="px-6 py-6 flex justify-between items-center transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderBottom: '1px solid var(--border-main)' }}>
                     <button onClick={() => navigate(-1)} className="text-red-600">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                             <path d="M19 12H5M12 19l-7-7 7-7" />
                         </svg>
                     </button>
                     <h1 className="text-sm font-black uppercase tracking-[0.2em] italic">MÉTODOS DE PAGO</h1>
-                    <div className="w-8 h-8 rounded-full border border-red-600/30 flex items-center justify-center bg-zinc-900 p-1">
+                    <div className="w-8 h-8 rounded-full border border-red-600/30 flex items-center justify-center p-1" style={{ backgroundColor: 'var(--bg-main)' }}>
                         <img src="/logo_osos.webp" alt="Osos" className="w-full h-full object-contain" />
                     </div>
                 </header>
 
-                <main className="px-6 space-y-8">
+                <main className="px-6 space-y-8 pt-8">
                     
                     {/* ── Method Selector ──────────────────────────────────────────────── */}
                     <section>
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-5 ml-1 italic">SELECCIONA TU MÉTODO</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-5 ml-1 italic opacity-40">SELECCIONA TU MÉTODO</p>
                         
                         <div className="grid grid-cols-2 gap-4">
                             {/* Option 1: Card */}
                             <div 
                                 onClick={() => setMethod('CARD')}
                                 className={`relative h-36 rounded-2xl flex flex-col items-center justify-center transition-all border-2 cursor-pointer
-                                    ${method === 'CARD' ? 'bg-[#2a1515] border-red-600 shadow-lg shadow-red-900/20' : 'bg-[#1a1212] border-transparent'}
+                                    ${method === 'CARD' ? 'bg-red-600/10 border-red-600 shadow-lg shadow-red-900/20' : 'border-transparent'}
                                 `}
+                                style={method !== 'CARD' ? { backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' } : {}}
                             >
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill={method === 'CARD' ? '#dc2626' : '#555'} className="mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill={method === 'CARD' ? '#dc2626' : 'var(--text-dim)'} className="mb-4">
                                     <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                                 </svg>
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-center px-4 leading-tight">
@@ -122,10 +123,11 @@ const ReportPayment = () => {
                                 <div 
                                     onClick={() => setMethod('SPEI')}
                                     className={`relative h-[4.5rem] rounded-2xl flex items-center px-5 gap-4 transition-all border-2 cursor-pointer
-                                        ${method === 'SPEI' ? 'bg-[#2a1515] border-red-600 shadow-lg shadow-red-900/20' : 'bg-[#1a1212] border-transparent'}
+                                        ${method === 'SPEI' ? 'bg-red-600/10 border-red-600 shadow-lg shadow-red-900/20' : 'border-transparent'}
                                     `}
+                                    style={method !== 'SPEI' ? { backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' } : {}}
                                 >
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill={method === 'SPEI' ? '#dc2626' : '#555'}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill={method === 'SPEI' ? '#dc2626' : 'var(--text-dim)'}>
                                         <path d="M3 21h18M3 10h18M5 10v11M19 10v11M12 10v11M2 10l10-7 10 7"/>
                                     </svg>
                                     <span className="text-[9px] font-black uppercase tracking-[0.2em]">TRANSFERENCIA SPEI</span>
@@ -136,10 +138,11 @@ const ReportPayment = () => {
                                 <div 
                                     onClick={() => setMethod('OXXO')}
                                     className={`relative h-[4.5rem] rounded-2xl flex items-center px-5 gap-4 transition-all border-2 cursor-pointer
-                                        ${method === 'OXXO' ? 'bg-[#2a1515] border-red-600 shadow-lg shadow-red-900/20' : 'bg-[#1a1212] border-transparent'}
+                                        ${method === 'OXXO' ? 'bg-red-600/10 border-red-600 shadow-lg shadow-red-900/20' : 'border-transparent'}
                                     `}
+                                    style={method !== 'OXXO' ? { backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' } : {}}
                                 >
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={method === 'OXXO' ? '#dc2626' : '#555'} strokeWidth="2.5">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={method === 'OXXO' ? '#dc2626' : 'var(--text-dim)'} strokeWidth="2.5">
                                         <path d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M8 7v10M12 7v10M16 7v10"/>
                                     </svg>
                                     <span className="text-[9px] font-black uppercase tracking-[0.2em]">PAGO EN OXXO</span>

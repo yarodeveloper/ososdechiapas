@@ -8,4 +8,7 @@ router.get('/parents', userController.getAllParents);
 // POST create parent
 router.post('/parents', userController.createParent);
 
+// PUT update password
+router.put('/:id/password', userController.updatePassword);
+
 module.exports = router;

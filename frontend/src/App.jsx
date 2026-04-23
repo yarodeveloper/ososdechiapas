@@ -26,9 +26,15 @@ import AdminStats from './pages/AdminStats';
 import PortalCalendar from './pages/PortalCalendar';
 import PortalFamilies from './pages/PortalFamilies';
 import PortalPlayerCard from './pages/PortalPlayerCard';
+import { useEffect } from 'react';
 import './index.css';
 
 const App = () => {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <Router>
       <Routes>

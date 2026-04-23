@@ -122,7 +122,7 @@ const getPlayerResume = async (req, res) => {
         const { player_id } = req.params;
         const [player] = await db.query(`
             SELECT p.*, c.name as category_name, 
-                   u.name as parent_name, u.email as parent_email, u.phone as parent_phone 
+                   u.name as parent_name, u.email as parent_email, u.phone as parent_phone, u.password_hash as parent_password 
             FROM players p 
             LEFT JOIN categories c ON p.category_id = c.id 
             LEFT JOIN users u ON p.user_id = u.id

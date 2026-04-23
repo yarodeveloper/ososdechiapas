@@ -46,17 +46,17 @@ const GameCenter = () => {
     }, [matchId]);
 
     return (
-        <div className="bg-[#0a0a0a] min-h-screen text-white font-body pb-32 overflow-x-hidden">
+        <div className="min-h-screen font-body pb-32 overflow-x-hidden transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
             {/* Header */}
-            <header className="px-6 py-6 border-b border-zinc-900 flex justify-between items-center bg-black/60 backdrop-blur-md sticky top-0 z-50">
-                <button onClick={() => navigate('/')} className="text-zinc-400">
+            <header className="px-6 py-6 border-b flex justify-between items-center backdrop-blur-md sticky top-0 z-50 transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--border-main)' }}>
+                <button onClick={() => navigate(-1)} style={{ color: 'var(--text-dim)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
                 <div className="flex flex-col items-center">
-                    <span className="font-display font-black text-xs uppercase tracking-[0.2em] italic italic">Game Center</span>
+                    <span className="font-display font-black text-xs uppercase tracking-[0.2em] italic">Game Center</span>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shadow-sm shadow-red-600"></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Match</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Live Match</span>
                     </div>
                 </div>
                 <div className="w-6"></div> {/* Spacer */}
@@ -65,36 +65,35 @@ const GameCenter = () => {
             <main className="max-w-md mx-auto px-6 py-8 animate-fade space-y-10">
                 
                 {/* Visual Scoreboard (Exhilarating) */}
-                <section className="relative h-[220px] rounded-[2.5rem] bg-gradient-to-br from-zinc-900 to-black border border-zinc-800/60 shadow-2xl overflow-hidden group">
+                <section className="relative h-[220px] rounded-[2.5rem] shadow-2xl overflow-hidden group border-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                     <div className="absolute inset-0 z-0">
                          <div className="absolute top-0 right-0 w-48 h-48 bg-red-600/10 blur-[80px] -translate-y-20 translate-x-20"></div>
-                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-zinc-800/20 blur-[50px] translate-y-20 -translate-x-10"></div>
                     </div>
 
                     <div className="relative z-10 p-8 h-full flex flex-col justify-between">
                          <div className="flex justify-between items-start">
                              <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all duration-300 ${gameState.possession === 'Osos' ? 'border-red-600 shadow-lg shadow-red-900/40 bg-red-600/20 scale-110' : 'border-transparent bg-zinc-800'}`}>
+                                    <div className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all duration-300 ${gameState.possession === 'Osos' ? 'border-red-600 shadow-lg shadow-red-900/40 bg-red-600/20 scale-110' : 'border-transparent'}`} style={{ backgroundColor: gameState.possession === 'Osos' ? '' : 'var(--bg-main)' }}>
                                         <img src="/logo_osos.webp" alt="Osos" className={`w-full h-full object-contain p-1 ${gameState.possession === 'Osos' ? '' : 'grayscale'}`} />
                                     </div>
-                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${gameState.possession === 'Osos' ? 'text-white' : 'text-zinc-500'}`}>Osos</span>
+                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${gameState.possession === 'Osos' ? '' : 'opacity-40'}`} style={{ color: 'var(--text-main)' }}>Osos</span>
                                 </div>
-                                <span className={`text-6xl font-display font-black leading-none italic italic transition-all duration-500 ${gameState.possession === 'Osos' ? 'text-white' : 'text-zinc-600 scale-90'}`}>
+                                <span className={`text-6xl font-display font-black leading-none italic transition-all duration-500 ${gameState.possession === 'Osos' ? '' : 'opacity-20 scale-90'}`} style={{ color: 'var(--text-main)' }}>
                                     {gameState.home_score}
                                 </span>
                              </div>
 
-                             <div className="text-xl font-display font-black text-zinc-800 mt-12 px-3 py-1 bg-zinc-950/40 border border-zinc-900 rounded-lg italic italic">VS</div>
+                             <div className="text-xl font-display font-black mt-12 px-3 py-1 rounded-lg italic border" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>VS</div>
 
                              <div className="flex flex-col items-end gap-3 text-right">
                                 <div className="flex items-center gap-3 text-right">
-                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${gameState.possession !== 'Osos' ? 'text-white' : 'text-zinc-500'}`}>Águilas</span>
-                                    <div className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all duration-300 ${gameState.possession !== 'Osos' ? 'border-red-600 shadow-lg shadow-red-900/40 bg-red-600/20 scale-110' : 'border-transparent bg-zinc-800'}`}>
-                                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center italic italic text-xl font-display font-black opacity-30 text-white">R</div>
+                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${gameState.possession !== 'Osos' ? '' : 'opacity-40'}`} style={{ color: 'var(--text-main)' }}>RIVAL</span>
+                                    <div className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all duration-300 ${gameState.possession !== 'Osos' ? 'border-red-600 shadow-lg shadow-red-900/40 bg-red-600/20 scale-110' : 'border-transparent'}`} style={{ backgroundColor: gameState.possession !== 'Osos' ? '' : 'var(--bg-main)' }}>
+                                        <div className="w-full h-full flex items-center justify-center italic text-xl font-display font-black opacity-30" style={{ color: 'var(--text-main)' }}>R</div>
                                     </div>
                                 </div>
-                                <span className={`text-6xl font-display font-black leading-none italic italic transition-all duration-500 ${gameState.possession !== 'Osos' ? 'text-white' : 'text-zinc-600 scale-90'}`}>
+                                <span className={`text-6xl font-display font-black leading-none italic transition-all duration-500 ${gameState.possession !== 'Osos' ? '' : 'opacity-20 scale-90'}`} style={{ color: 'var(--text-main)' }}>
                                     {gameState.away_score}
                                 </span>
                              </div>
@@ -110,30 +109,30 @@ const GameCenter = () => {
                 </section>
 
                 {/* Dashboard Stats (Time, Dist, Quarter) */}
-                <section className="card grid grid-cols-3 divide-x divide-zinc-900 overflow-hidden">
+                <section className="card grid grid-cols-3 divide-x overflow-hidden border-2" style={{ borderColor: 'var(--border-main)' }}>
                     <div className="py-6 flex flex-col items-center gap-1.5">
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none">Cuarto</span>
-                        <span className="text-xl font-display font-black uppercase italic italic text-red-600">{gameState.quarter}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-dim)' }}>Cuarto</span>
+                        <span className="text-xl font-display font-black uppercase italic text-red-600">{gameState.quarter}</span>
                     </div>
                     <div className="py-6 flex flex-col items-center gap-1.5">
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none">Tiempo</span>
-                        <span className="text-xl font-display font-black uppercase italic italic tabular-nums leading-none mt-0.5">{gameState.time_left}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-dim)' }}>Tiempo</span>
+                        <span className="text-xl font-display font-black uppercase italic tabular-nums leading-none mt-0.5" style={{ color: 'var(--text-main)' }}>{gameState.time_left}</span>
                     </div>
                     <div className="py-6 flex flex-col items-center gap-1.5">
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none">Down & Dist</span>
-                        <span className="text-base font-display font-black uppercase italic italic tracking-tight">{gameState.down_and_distance || '1ST & 10'}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-dim)' }}>Down & Dist</span>
+                        <span className="text-base font-display font-black uppercase italic tracking-tight" style={{ color: 'var(--text-main)' }}>{gameState.down_and_distance || '1ST & 10'}</span>
                     </div>
                 </section>
 
                 {/* Field Visual Simulation (Premium Touch) */}
                 <section className="space-y-4">
                     <div className="flex justify-between items-center mb-6 px-1">
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-600">Ubicación de Campo</h3>
+                        <h3 className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Ubicación de Campo</h3>
                         <span className="text-[9px] font-black text-red-600 px-3 py-1 rounded bg-red-600/10 border border-red-600/15 uppercase">En Vivo</span>
                     </div>
-                    <div className="h-16 bg-zinc-900/40 border border-zinc-800/60 rounded-2xl relative overflow-hidden flex items-center px-4">
-                         <div className="absolute inset-y-0 left-0 w-1/2 border-r border-zinc-900 border-dashed"></div>
-                         <div className="flex justify-between w-full relative z-10 text-[8px] font-bold text-zinc-700 tracking-widest">
+                    <div className="h-16 border rounded-2xl relative overflow-hidden flex items-center px-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                         <div className="absolute inset-y-0 left-0 w-1/2 border-r border-dashed" style={{ borderColor: 'var(--border-main)' }}></div>
+                         <div className="flex justify-between w-full relative z-10 text-[8px] font-bold tracking-widest" style={{ color: 'var(--text-muted)' }}>
                              <span>PROPIOS 20</span>
                              <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 rounded-full bg-red-600 shadow-[0_0_10px_rgba(227,5,20,0.5)] flex items-center justify-center">
@@ -143,7 +142,7 @@ const GameCenter = () => {
                              </div>
                          </div>
                     </div>
-                    <p className="text-xs font-medium text-zinc-500 leading-relaxed italic px-2">
+                    <p className="text-xs font-medium leading-relaxed italic px-2" style={{ color: 'var(--text-dim)' }}>
                         {gameState.playLog[0]?.desc || 'Aguardando siguiente jugada en el campo...'}
                     </p>
                 </section>
@@ -151,24 +150,24 @@ const GameCenter = () => {
                 {/* Real-time Play Log */}
                 <section className="space-y-6">
                     <div className="flex justify-between items-end mb-4">
-                        <h2 className="text-2xl font-display font-black uppercase italic italic tracking-tight">Jugadas Recientes</h2>
+                        <h2 className="text-2xl font-display font-black uppercase italic tracking-tight" style={{ color: 'var(--text-main)' }}>Jugadas Recientes</h2>
                         <div className="w-12 h-1 bg-red-600 opacity-20"></div>
                     </div>
                     
                     <div className="space-y-4">
                         {gameState.playLog.map((play, i) => (
-                             <div key={play.id} className="card p-6 flex items-start gap-5 relative group overflow-hidden animate-fade">
+                             <div key={play.id} className="card p-6 flex items-start gap-5 relative group overflow-hidden animate-fade border-2" style={{ borderColor: 'var(--border-main)' }}>
                                  {i === 0 && <div className="absolute top-0 right-0 w-16 h-16 bg-red-600/5 blur-[40px] pointer-events-none"></div>}
-                                 <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center p-3 border border-zinc-900 mt-1">
+                                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center p-3 border mt-1" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="#e30514"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5l-3.5-3.5 1.41-1.41L13 13.67l4.09-4.09 1.41 1.41L13 16.5z"/></svg>
                                  </div>
                                  <div className="flex-1 space-y-2">
                                      <div className="flex justify-between items-center">
                                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600">{play.type}</span>
-                                        <span className="text-[9px] font-bold text-zinc-600 tracking-widest">{play.quarter} - {play.time}</span>
+                                        <span className="text-[9px] font-bold tracking-widest" style={{ color: 'var(--text-muted)' }}>{play.quarter} - {play.time}</span>
                                      </div>
-                                     <h4 className="text-base font-display font-black uppercase italic italic leading-none">{play.desc}</h4>
-                                     <p className="text-[11px] font-medium text-zinc-500 leading-relaxed pr-8 opacity-80">
+                                     <h4 className="text-base font-display font-black uppercase italic leading-none" style={{ color: 'var(--text-main)' }}>{play.desc}</h4>
+                                     <p className="text-[11px] font-medium leading-relaxed pr-8 opacity-80" style={{ color: 'var(--text-dim)' }}>
                                         Actualización en vivo sincronizada desde el Match Control oficial.
                                      </p>
                                  </div>
@@ -177,15 +176,15 @@ const GameCenter = () => {
                     </div>
                 </section>
 
-                <button className="btn-primary w-full py-5 rounded-[1.5rem] flex items-center justify-center gap-4 text-sm font-display font-black uppercase italic italic tracking-widest active:scale-[0.98]">
+                <button className="btn-primary w-full py-5 rounded-[1.5rem] flex items-center justify-center gap-4 text-sm font-display font-black uppercase italic tracking-widest active:scale-[0.98]">
                     Ver Estadísticas Completas <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 20V10M12 20V4M6 20v-6"/><path d="M3 20h18" strokeWidth="2"/></svg>
                 </button>
 
             </main>
 
             {/* Bottom Nav */}
-            <nav className="fixed bottom-0 left-0 w-full bg-black/80 backdrop-blur-xl border-t border-zinc-900 pt-5 pb-9 px-8 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
-                <div className="max-w-md mx-auto flex justify-between items-center text-zinc-600">
+            <nav className="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t pt-5 pb-9 px-8 z-50 rounded-t-3xl shadow-2xl transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--border-main)' }}>
+                <div className="max-w-md mx-auto flex justify-between items-center" style={{ color: 'var(--text-dim)' }}>
                     <button className="flex flex-col items-center gap-1.5 text-red-600 active:scale-95 transition-all">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 12h8M12 8v8"/></svg>
                         <span className="text-[9px] font-black uppercase tracking-[0.2em]">En Vivo</span>

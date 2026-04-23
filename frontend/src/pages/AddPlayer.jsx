@@ -80,7 +80,7 @@ const AddPlayer = () => {
   };
 
   const copyToClipboard = () => {
-    const text = `🙌 ¡Bienvenido a Club Osos de Chiapas!\n\nSe ha creado tu cuenta familiar para el portal de padres.\n\n🔗 Acceso: ${window.location.origin}/login\n📧 Usuario: ${successData.email}\n🔑 Contraseña: ${successData.password}\n\n¡Te esperamos en el campo! 🏀🐾`;
+    const text = `Club Osos de Chiapas\n\nBienvenido a la familia. Se ha creado tu cuenta:\n\nEmail: ${successData.email}\nPass: ${successData.password}\nEntra aquí: ${window.location.origin}/login\n\n¡Te esperamos en el campo! 🏈🐾`;
     navigator.clipboard.writeText(text);
     alert('¡Credenciales copiadas al portapapeles!');
   };
@@ -169,7 +169,7 @@ const AddPlayer = () => {
                     </select>
                   </div>
                </div>
-               <div><label className={labelCls}>CURP (18 Caracteres)</label><input type="text" name="curp" maxLength={18} required className={inputCls + " uppercase"} value={formData.curp} onChange={handleInputChange} /></div>
+               <div><label className={labelCls}>CURP (Opcional)</label><input type="text" name="curp" maxLength={18} className={inputCls + " uppercase"} value={formData.curp} onChange={handleInputChange} /></div>
             </div>
           </div>
 

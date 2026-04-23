@@ -57,7 +57,8 @@ const PlayerDetail = () => {
                     jersey_number: statsData.jersey_number || '',
                     parent_name: statsData.parent_name || '',
                     parent_email: statsData.parent_email || '',
-                    parent_phone: statsData.parent_phone || ''
+                    parent_phone: statsData.parent_phone || '',
+                    status: statsData.status || 'active'
                 });
             } catch (e) {
                 console.error(e);
@@ -69,6 +70,12 @@ const PlayerDetail = () => {
     }, [id]);
 
     const handleSave = async () => {
+        // Confirm archiving if status is changing to inactive
+        if (formData.status === 'inactive' && player.status !== 'inactive') {
+            const ok = window.confirm("¿Estás seguro de dar de baja a este jugador? Se ocultará del roster activo pero sus datos históricos se conservarán.");
+            if (!ok) return;
+        }
+
         setSaving(true);
         try {
             const data = new FormData();
@@ -146,6 +153,17 @@ const PlayerDetail = () => {
             </header>
 
             <main className="max-w-md mx-auto px-6 pt-6 animate-fade">
+                {!editing && player.status === 'inactive' && (
+                    <div className="mb-6 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500">
+                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Jugador Archivados</p>
+                            <p className="text-[9px] font-medium text-zinc-600 leading-tight mt-0.5">Este perfil está en el archivo histórico del club (Baja).</p>
+                        </div>
+                    </div>
+                )}
                 
                 {editing ? (
                     /* ── EDIT MODE ── */
@@ -178,7 +196,7 @@ const PlayerDetail = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className={labelCls}>CURP</label>
+                                <label className={labelCls}>CURP (Opcional)</label>
                                 <input className={inputCls} value={formData.curp} maxLength={18} onChange={e => setFormData({...formData, curp: e.target.value.toUpperCase()})} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -211,6 +229,27 @@ const PlayerDetail = () => {
                             <div>
                                 <label className={labelCls}>Alergias</label>
                                 <textarea className={`${inputCls} h-24`} value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} />
+                            </div>
+
+                            <div className="pt-4 border-t border-zinc-900">
+                                <label className={labelCls}>Estatus del Jugador</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setFormData({...formData, status: 'active'})}
+                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${formData.status === 'active' ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
+                                    >
+                                        Activo
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setFormData({...formData, status: 'inactive'})}
+                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${formData.status === 'inactive' ? 'bg-zinc-700 border-zinc-600 text-white shadow-lg shadow-zinc-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
+                                    >
+                                        Inactivo (Baja)
+                                    </button>
+                                </div>
+                                <p className="mt-2 text-[8px] text-zinc-600 italic">Los jugadores inactivos se ocultan del roster principal pero conservan sus datos.</p>
                             </div>
 
                             <div className="pt-4 mt-4 border-t border-zinc-900 border-dashed">
@@ -253,11 +292,19 @@ const PlayerDetail = () => {
                                     <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">NUM</span>
                                     <span className="text-xl font-display font-black text-white italic">#{player.jersey_number || '00'}</span>
                                 </div>
-                                <div className="w-40 h-40 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-4">
+                                <div className={`w-40 h-40 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-4 ${player.status === 'inactive' ? 'grayscale opacity-60' : ''}`}>
                                     {player.photo_url ? <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-display font-black text-zinc-700">{initials}</div>}
                                 </div>
                                 <h1 className="text-3xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2">{player.name}</h1>
-                                <span className="bg-red-600/10 text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-red-600/20">Osos {player.category_name}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="bg-red-600/10 text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-red-600/20">Osos {player.category_name}</span>
+                                    {player.status === 'inactive' && (
+                                        <span className="bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-zinc-700 flex items-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-600"></div>
+                                            Baja / Archivo
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </section>
 
@@ -341,6 +388,66 @@ const PlayerDetail = () => {
                                      </div>
                                      <p className="text-sm font-bold text-zinc-300 ml-1">{player.allergies || 'Sin alertas médicas registradas.'}</p>
                                 </div>
+
+                                {/* ── GESTIÓN DE ACCESOS (ADMIN ONLY) ───────────────────────── */}
+                                {isStaff && (
+                                    <div className="mt-8 space-y-4">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-1.5 h-6 bg-blue-600"></div>
+                                            <h3 className="text-lg font-display font-black uppercase italic tracking-tighter">Gestión de Accesos</h3>
+                                        </div>
+                                        
+                                        <div className="bg-zinc-950 border border-blue-900/20 rounded-3xl p-6 space-y-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">Usuario / Email</p>
+                                                    <p className="text-sm font-bold text-white">{player.parent_email || 'No asignado'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1 text-right">Contraseña</p>
+                                                    <p className="text-sm font-bold text-white text-right">{player.parent_password || '********'}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-3 pt-4 border-t border-zinc-900">
+                                                <button 
+                                                    onClick={async () => {
+                                                        const newPass = window.prompt("Ingresa la nueva contraseña temporal:", "osos2026");
+                                                        if (!newPass) return;
+                                                        try {
+                                                            const res = await fetch(`/api/users/${player.user_id}/password`, {
+                                                                method: 'PUT',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ password: newPass })
+                                                            });
+                                                            if (res.ok) {
+                                                                alert("Contraseña actualizada con éxito.");
+                                                                setPlayer(prev => ({ ...prev, parent_password: newPass }));
+                                                            }
+                                                        } catch (e) { alert("Error al actualizar"); }
+                                                    }}
+                                                    className="w-full bg-zinc-900 border border-zinc-800 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
+                                                >
+                                                    Cambiar Contraseña
+                                                </button>
+
+                                                <button 
+                                                    onClick={() => {
+                                                        const pass = player.parent_password || '********';
+                                                        const text = `Club Osos de Chiapas\n\nAccesos Portal de Padres:\nEmail: ${player.parent_email}\nPass: ${pass}\nLink: ${window.location.origin}/login`;
+                                                        const phone = player.parent_phone ? player.parent_phone.replace(/\D/g,'') : '';
+                                                        const wpUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                                                        window.open(wpUrl, '_blank');
+                                                    }}
+                                                    className="w-full bg-green-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 shadow-xl shadow-green-900/20 active:scale-95 transition-all"
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.102-1.339a9.916 9.916 0 004.91 1.3c5.507 0 9.99-4.478 9.99-9.984s-4.483-9.984-9.99-9.984zm5.721 14.123c-.247.691-1.224 1.285-1.681 1.369-.456.084-.91.134-2.82-.622-2.308-.911-3.793-3.256-3.908-3.41-.115-.153-.935-1.244-.935-2.392 0-1.148.601-1.711.815-1.942.214-.231.468-.289.625-.289.156 0 .312.001.447.007.143.006.336-.055.526.403.19.458.647 1.579.704 1.693.057.114.095.247.019.399-.076.152-.114.247-.228.38-.114.133-.24.298-.342.4-.114.114-.233.238-.101.465.132.227.587.967 1.26 1.564.867.77 1.597 1.01 1.825 1.124.228.114.361.095.495-.057.133-.152.57-.665.722-.892.152-.228.304-.19.513-.114.21.076 1.33.627 1.558.741.229.114.381.171.438.266.057.095.057.551-.19 1.242z"/></svg>
+                                                    Enviar por WhatsApp
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
