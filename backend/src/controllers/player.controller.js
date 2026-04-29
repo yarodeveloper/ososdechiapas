@@ -67,7 +67,7 @@ const getPlayers = async (req, res) => {
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
       LEFT JOIN catalogs_blood_types bt ON p.blood_type_id = bt.id
-      ORDER BY p.created_at DESC
+      ORDER BY p.status ASC, p.created_at DESC
     `);
     res.status(200).json(rows);
   } catch (error) {
@@ -103,7 +103,7 @@ const updatePlayer = async (req, res) => {
     const { id } = req.params;
     const { 
       name, birth_date, curp, position_id, category_id, blood_type_id, 
-      emergency_phone, allergies, jersey_number, status,
+      emergency_phone, allergies, jersey_number, status, deactivation_reason,
       parent_name, parent_email, parent_phone 
     } = req.body;
 
@@ -118,10 +118,16 @@ const updatePlayer = async (req, res) => {
 
     // Actualizar datos del jugador
     await db.query(
-      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, allergies=?, jersey_number=?, photo_url=?, status=?
+      `UPDATE players SET name=?, birth_date=?, curp=?, position_id=?, category_id=?, blood_type_id=?, emergency_phone=?, allergies=?, jersey_number=?, photo_url=?, status=?, deactivation_reason=?
        WHERE id=?`,
-      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, jersey_number || null, photo_url, status || 'active', id]
+      [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, jersey_number || null, photo_url, status || 'active', deactivation_reason || null, id]
     );
+
+    // Sync user status
+    if (existing[0].user_id) {
+       const userIsActive = (status === 'inactive') ? 0 : 1;
+       await db.query('UPDATE users SET is_active=? WHERE id=?', [userIsActive, existing[0].user_id]);
+    }
 
     // Update parent data or create new parent if none exists or assigned to Admin
     if (existing[0].user_id && existing[0].user_id !== 1) {
@@ -205,7 +211,7 @@ const getPlayersByCategory = async (req, res) => {
       SELECT p.*, pos.name as position_name
       FROM players p
       LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
-      WHERE p.category_id = ?
+      WHERE p.category_id = ? AND p.status = 'active'
       ORDER BY p.name ASC
     `, [categoryId]);
     res.status(200).json(rows);

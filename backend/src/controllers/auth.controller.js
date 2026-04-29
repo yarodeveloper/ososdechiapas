@@ -19,6 +19,11 @@ const login = async (req, res) => {
     }
 
     const user = rows[0];
+    
+    // Check if user is active
+    if (user.is_active === 0) {
+      return res.status(401).json({ message: 'Tu acceso ha sido desactivado. Contacta a la administración.' });
+    }
 
     // Simple password check (compare plain text for development)
     if (user.password_hash !== password) {

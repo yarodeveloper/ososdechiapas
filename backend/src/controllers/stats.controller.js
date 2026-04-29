@@ -23,13 +23,15 @@ const getLeaderboard = async (req, res) => {
             SELECT 
                 p.id, p.name, p.photo_url, pos.name as position_name,
                 SUM(s.touchdowns) as total_touchdowns,
+                SUM(s.td_offense) as total_td_offense,
+                SUM(s.td_defense) as total_td_defense,
                 SUM(s.yards_passing + s.yards_rushing + s.yards_receiving) as total_yards,
                 SUM(s.tackles) as total_tackles,
                 (SELECT COUNT(*) FROM player_stats WHERE player_id = p.id AND is_mvp = 1) as mvp_count
             FROM players p
             JOIN player_stats s ON p.id = s.player_id
             LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
-            WHERE p.category_id = ?
+            WHERE p.category_id = ? AND p.status = 'active'
             GROUP BY p.id
             ORDER BY ${ord} DESC
             LIMIT 10
@@ -51,6 +53,7 @@ const getGlobalMvps = async (req, res) => {
             ) as m ON p.id = m.player_id
             LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
             LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.status = 'active'
             ORDER BY m.m_count DESC
             LIMIT 10
         `);
@@ -77,13 +80,15 @@ const savePlayerStats = async (req, res) => {
     try {
         const { 
             player_id, event_id, yards_passing, yards_rushing, yards_receiving, 
-            touchdowns, tackles, interceptions, sacks, points_extra, is_mvp 
+            touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp 
         } = req.body;
 
         const yp = parseInt(yards_passing) || 0;
         const yr = parseInt(yards_rushing) || 0;
         const yrec = parseInt(yards_receiving) || 0;
-        const tds = parseInt(touchdowns) || 0;
+        const td_off = parseInt(td_offense) || 0;
+        const td_def = parseInt(td_defense) || 0;
+        const tds = td_off + td_def; // Calculate total TDs
         const tck = parseInt(tackles) || 0;
         const ints = parseInt(interceptions) || 0;
         const sks = parseInt(sacks) || 0;
@@ -95,14 +100,14 @@ const savePlayerStats = async (req, res) => {
         if (existing.length > 0) {
             await db.query(`
                 UPDATE player_stats SET 
-                yards_passing=?, yards_rushing=?, yards_receiving=?, touchdowns=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
+                yards_passing=?, yards_rushing=?, yards_receiving=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
                 WHERE id=?
-            `, [yp, yr, yrec, tds, tck, ints, sks, ext, mvp, existing[0].id]);
+            `, [yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
         } else {
             await db.query(`
-                INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, touchdowns, tackles, interceptions, sacks, points_extra, is_mvp)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [player_id, event_id, yp, yr, yrec, tds, tck, ints, sks, ext, mvp]);
+                INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [player_id, event_id, yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
         }
 
         res.json({ success: true });
@@ -133,6 +138,8 @@ const getPlayerResume = async (req, res) => {
         const [stats] = await db.query(`
             SELECT 
                 SUM(touchdowns) as total_tds, 
+                SUM(td_offense) as total_td_offense,
+                SUM(td_defense) as total_td_defense,
                 SUM(yards_passing+yards_rushing+yards_receiving) as total_yards,
                 SUM(tackles) as total_tackles,
                 (SELECT COUNT(*) FROM player_stats WHERE player_id = ? AND is_mvp = 1) as mvp_count

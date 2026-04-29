@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import SvgIcon from '../components/SvgIcon';
 
 const PlayerDetail = () => {
     const { id } = useParams();
@@ -13,6 +14,8 @@ const PlayerDetail = () => {
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showPoster, setShowPoster] = useState(false);
+    const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+    const [deactivationReason, setDeactivationReason] = useState('Cambio de equipo');
     
     // Catalogs for editing
     const [positions, setPositions] = useState([]);
@@ -58,7 +61,8 @@ const PlayerDetail = () => {
                     parent_name: statsData.parent_name || '',
                     parent_email: statsData.parent_email || '',
                     parent_phone: statsData.parent_phone || '',
-                    status: statsData.status || 'active'
+                    status: statsData.status || 'active',
+                    deactivation_reason: statsData.deactivation_reason || ''
                 });
             } catch (e) {
                 console.error(e);
@@ -159,8 +163,65 @@ const PlayerDetail = () => {
                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Jugador Archivados</p>
-                            <p className="text-[9px] font-medium text-zinc-600 leading-tight mt-0.5">Este perfil está en el archivo histórico del club (Baja).</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Jugador Archivado</p>
+                            <p className="text-[9px] font-medium text-zinc-600 leading-tight mt-0.5">Motivo: {player.deactivation_reason || 'No especificado'}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Deactivation Modal */}
+                {showDeactivateModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeactivateModal(false)}></div>
+                        <div className="relative border rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--primary)]"></div>
+                            <h2 className="text-xl font-display font-black uppercase italic italic tracking-tighter mb-4" style={{ color: 'var(--text-main)' }}>Baja del Equipo</h2>
+                            <p className="text-xs mb-6 leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                                Se ocultará del roster y <b style={{ color: 'var(--primary)' }}>se bloqueará el acceso al portal</b> para el tutor. Sus estadísticas se conservarán.
+                            </p>
+                            
+                            <div className="space-y-4 mb-8">
+                                <div>
+                                    <label className="text-[9px] font-black uppercase tracking-widest block mb-2 ml-1" style={{ color: 'var(--text-muted)' }}>Motivo de la Baja</label>
+                                    <select 
+                                        className="w-full border rounded-xl px-4 py-3 text-xs outline-none focus:border-[var(--primary)]"
+                                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                        value={deactivationReason}
+                                        onChange={e => setDeactivationReason(e.target.value)}
+                                    >
+                                        <option>Cambio de equipo</option>
+                                        <option>Baja voluntaria</option>
+                                        <option>Expulsión / Disciplina</option>
+                                        <option>Mudanza</option>
+                                        <option>Lesión larga duración</option>
+                                        <option>Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={async () => {
+                                        setSaving(true);
+                                        try {
+                                            const body = new FormData();
+                                            Object.entries(formData).forEach(([k,v]) => body.append(k,v));
+                                            body.set('status', 'inactive');
+                                            body.set('deactivation_reason', deactivationReason);
+                                            
+                                            const res = await fetch(`/api/players/${id}`, { method: 'PUT', body });
+                                            if (res.ok) {
+                                                setShowDeactivateModal(false);
+                                                window.location.reload();
+                                            }
+                                        } catch (e) {} finally { setSaving(false); }
+                                    }}
+                                    className="w-full bg-[var(--primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl shadow-red-900/40 active:scale-95 transition-all"
+                                >
+                                    Confirmar Baja Definitiva
+                                </button>
+                                <button onClick={() => setShowDeactivateModal(false)} className="w-full py-3 text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Cancelar</button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -316,9 +377,16 @@ const PlayerDetail = () => {
                         {activeTab === 'stats' ? (
                             <div className="space-y-8 animate-fade">
                                 <div className="grid grid-cols-3 gap-3">
-                                    <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
-                                        <span className="text-[11px] font-black text-zinc-600 uppercase tracking-widest mb-2">TDs</span>
-                                        <span className="text-2xl font-display font-black text-red-600">{player.total_tds || 0}</span>
+                                    <div className="border p-5 rounded-3xl flex flex-col items-center" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                                        <div className="flex flex-col items-center mb-1">
+                                            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>TDs</span>
+                                            <div className="flex gap-2 text-[8px] font-bold uppercase" style={{ color: 'var(--text-muted)' }}>
+                                                <span>OF: {player.total_td_offense || 0}</span>
+                                                <span style={{ color: 'var(--border-main)' }}>|</span>
+                                                <span>DF: {player.total_td_defense || 0}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-2xl font-display font-black leading-none" style={{ color: 'var(--primary)' }}>{player.total_tds || 0}</span>
                                     </div>
                                     <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
                                         <span className="text-[11px] font-black text-zinc-600 uppercase tracking-widest mb-2">Yards</span>
@@ -445,6 +513,50 @@ const PlayerDetail = () => {
                                                     Enviar por WhatsApp
                                                 </button>
                                             </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ── ZONA DE BAJA (ADMIN ONLY) ───────────────────────────── */}
+                                {isStaff && (
+                                    <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--border-main)' }}>
+                                        <div className="border rounded-3xl p-8 text-center" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--primary)', borderOpacity: 0.1 }}>
+                                            <h4 className="text-sm font-black uppercase italic tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Zona de Control de Roster</h4>
+                                            <p className="text-[10px] uppercase font-bold mb-6 tracking-widest leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                                {player.status === 'active' 
+                                                    ? 'Inactivar al jugador lo eliminará de las listas activas y bloqueará su acceso al portal.'
+                                                    : 'Reactivar al jugador permitirá nuevamente su acceso y aparecerá en las listas de estadísticas.'}
+                                            </p>
+                                            
+                                            {player.status === 'active' ? (
+                                                <button 
+                                                    onClick={() => setShowDeactivateModal(true)}
+                                                    className="inline-flex items-center gap-2 px-6 py-3 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                                    style={{ backgroundColor: 'transparent', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                                                >
+                                                    <SvgIcon src="/icons/deactivate-user-svgrepo-com.svg" className="w-4 h-4" />
+                                                    Dar de Baja del Equipo
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={async () => {
+                                                        if(!window.confirm("¿Reactivar a este jugador y su acceso al portal?")) return;
+                                                        setSaving(true);
+                                                        try {
+                                                            const body = new FormData();
+                                                            Object.entries(formData).forEach(([k,v]) => body.append(k,v));
+                                                            body.set('status', 'active');
+                                                            const res = await fetch(`/api/players/${id}`, { method: 'PUT', body });
+                                                            if (res.ok) window.location.reload();
+                                                        } catch (e) {} finally { setSaving(false); }
+                                                    }}
+                                                    className="inline-flex items-center gap-2 px-6 py-3 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                                    style={{ backgroundColor: 'transparent', borderColor: 'green', color: 'green' }}
+                                                >
+                                                    <SvgIcon src="/icons/check-mark-svgrepo-com.svg" className="w-4 h-4" />
+                                                    Reactivar Jugador
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 )}

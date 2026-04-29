@@ -226,8 +226,13 @@ const StatsCenter = () => {
                                             <div className="flex gap-3 mt-2 items-center">
                                                 {sortBy === 'touchdowns' && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Touchdowns</span>
+                                                        <span className="text-[8px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Touchdowns</span>
                                                         <span className="text-xl leading-none font-display font-black">{player.total_touchdowns || 0}</span>
+                                                        <div className="flex gap-1.5 mt-1 text-[7px] font-black text-zinc-500 uppercase tracking-tighter">
+                                                            <span>OF: {player.total_td_offense || 0}</span>
+                                                            <span className="text-zinc-800">|</span>
+                                                            <span>DF: {player.total_td_defense || 0}</span>
+                                                        </div>
                                                     </div>
                                                 )}
                                                 {sortBy === 'yards' && (
