@@ -13,6 +13,11 @@ async function applyMigrations() {
             name: 'deactivation_reason en players',
             sql: `ALTER TABLE players ADD COLUMN IF NOT EXISTS deactivation_reason VARCHAR(255) DEFAULT NULL AFTER status`
         },
+        {
+            name: 'Actualizar ENUM status en players',
+            sql: `ALTER TABLE players MODIFY COLUMN status ENUM('active', 'inactive', 'baja') DEFAULT 'active'`
+        },
+
         // 2. Columnas para Estadísticas Desglosadas
         {
             name: 'td_offense en player_stats',
