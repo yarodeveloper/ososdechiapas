@@ -31,12 +31,13 @@ const PlayerCard = ({ player, index }) => {
     ? player.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
-  const isInactive = player.status === 'inactive';
+  const isPaused = player.status === 'inactive';
+  const isBaja = player.status === 'baja';
 
   return (
     <div
       onClick={() => navigate(`/players/${player.id}`)}
-      className={`card p-4 flex items-center gap-4 group cursor-pointer active:scale-[0.98] transition-all duration-200 shadow-sm ${isInactive ? 'opacity-60 grayscale-[0.5] hover:grayscale-0' : 'hover:border-red-500/20'}`}
+      className={`card p-4 flex items-center gap-4 group cursor-pointer active:scale-[0.98] transition-all duration-200 shadow-sm ${isPaused ? 'opacity-80' : (isBaja ? 'opacity-60 grayscale' : 'hover:border-red-500/20')}`}
       style={{ animationDelay: `${index * 40}ms` }}
     >
       {/* Avatar */}
@@ -54,7 +55,7 @@ const PlayerCard = ({ player, index }) => {
         </div>
         {/* Position badge on avatar */}
         {player.position_name && (
-          <div className={`absolute -bottom-1.5 -right-1.5 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md tracking-wider leading-none ${isInactive ? 'bg-zinc-500' : 'bg-red-600'}`}>
+          <div className={`absolute -bottom-1.5 -right-1.5 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md tracking-wider leading-none ${isBaja ? 'bg-zinc-500' : (isPaused ? 'bg-amber-500' : 'bg-red-600')}`}>
             {abbr}
           </div>
         )}
@@ -62,7 +63,7 @@ const PlayerCard = ({ player, index }) => {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h3 className={`font-black text-sm uppercase tracking-wide transition-colors truncate leading-tight ${isInactive ? '' : 'group-hover:text-red-600'}`} style={{ color: isInactive ? 'var(--text-muted)' : 'var(--text-main)' }}>
+        <h3 className={`font-black text-sm uppercase tracking-wide transition-colors truncate leading-tight ${isBaja ? 'text-zinc-500' : 'group-hover:text-red-600'}`} style={{ color: isBaja ? '' : 'var(--text-main)' }}>
           {player.name}
         </h3>
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -72,7 +73,7 @@ const PlayerCard = ({ player, index }) => {
             </span>
           )}
           {player.position_name && (
-            <span className={`text-[9px] font-bold uppercase tracking-wider ${isInactive ? '' : 'text-red-600'}`} style={{ color: isInactive ? 'var(--text-muted)' : '' }}>
+            <span className={`text-[9px] font-bold uppercase tracking-wider ${isBaja ? 'text-zinc-600' : 'text-red-600'}`}>
               {player.position_name.replace(/\s*\([^)]*\)/, '')}
             </span>
           )}
@@ -80,9 +81,17 @@ const PlayerCard = ({ player, index }) => {
       </div>
 
       {/* Arrow / Badge */}
-      {isInactive ? (
-        <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border" style={{ color: 'var(--text-dim)', backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>Baja</span>
-      ) : (
+      {isPaused && (
+        <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#f59e0b', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+          En Pausa
+        </span>
+      )}
+      {isBaja && (
+        <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#ef4444', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+          Baja Definitiva
+        </span>
+      )}
+      {!isPaused && !isBaja && (
         <svg
           width="18" height="18" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2.5"
@@ -134,7 +143,13 @@ const PlayerList = () => {
     }
 
     if (activeStatus !== 'all') {
-      result = result.filter(p => (p.status || 'active') === activeStatus);
+      if (activeStatus === 'inactive') {
+        // Archivo solo muestra las Bajas Definitivas
+        result = result.filter(p => p.status === 'baja');
+      } else {
+        // Roster Activo muestra Activos, En Pausa y los que no tienen estatus (default active)
+        result = result.filter(p => !p.status || p.status === 'active' || p.status === 'inactive');
+      }
     }
 
     if (searchText.trim()) {

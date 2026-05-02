@@ -33,11 +33,13 @@ const PortalPlayerCard = () => {
     if (loading) return <div className="bg-black min-h-screen text-white flex items-center justify-center font-black">Generando Playcard...</div>;
 
     const totals = stats.reduce((acc, s) => ({
-        yards: acc.yards + (parseInt(s.yards_passing) || 0) + (parseInt(s.yards_rushing) || 0),
+        yards: acc.yards + (parseInt(s.yards_passing) || 0) + (parseInt(s.yards_rushing) || 0) + (parseInt(s.yards_receiving) || 0),
         tds: acc.tds + (parseInt(s.touchdowns) || 0),
         tackles: acc.tackles + (parseInt(s.tackles) || 0),
-        ints: acc.ints + (parseInt(s.interceptions) || 0)
-    }), { yards: 0, tds: 0, tackles: 0, ints: 0 });
+        ints: acc.ints + (parseInt(s.interceptions) || 0),
+        sacks: acc.sacks + (parseInt(s.sacks) || 0),
+        extra: acc.extra + (parseInt(s.points_extra) || 0)
+    }), { yards: 0, tds: 0, tackles: 0, ints: 0, sacks: 0, extra: 0 });
 
     const chartData = {
         labels: [...stats].reverse().map(s => {
@@ -126,7 +128,9 @@ const PortalPlayerCard = () => {
                         { label: 'YARDAS TOTALES', val: totals.yards, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
                         { label: 'TOUCHDOWNS', val: totals.tds, icon: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z' },
                         { label: 'TACKLEOS', val: totals.tackles, icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-                        { label: 'INTERCEPCIONES', val: totals.ints, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }
+                        { label: 'INT / SACKS', val: `${totals.ints}/${totals.sacks}`, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+                        { label: 'PUNTOS EXTRA', val: totals.extra, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+                        { label: 'MVP COUNT', val: stats.filter(s => s.is_mvp).length, icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z' }
                     ].map((st, i) => (
                         <div key={i} className="bg-zinc-950 border border-zinc-900 rounded-[2rem] p-6 shadow-xl relative group hover:border-red-600 transition-colors">
                             <div className="w-8 h-8 rounded-lg bg-red-600/5 flex items-center justify-center text-red-600 mb-6"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d={st.icon}/></svg></div>
@@ -159,10 +163,11 @@ const PortalPlayerCard = () => {
                                     <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic">{new Date(s.event_date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric'})}</p>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-lg font-black italic text-red-600">+{parseInt(s.yards_passing) + parseInt(s.yards_rushing)} YARDS</span>
-                                    <div className="flex gap-2 justify-end mt-1">
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest">{s.touchdowns} TDS</span>
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest">{s.tackles} TACKLES</span>
+                                    <span className="text-lg font-black italic text-red-600">+{parseInt(s.yards_passing) + parseInt(s.yards_rushing) + parseInt(s.yards_receiving)} YDS</span>
+                                    <div className="flex flex-wrap gap-1 justify-end mt-2">
+                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">TD: {s.td_offense}+{s.td_defense}</span>
+                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">DEF: {s.tackles}/{s.interceptions}/{s.sacks}</span>
+                                        {s.is_mvp && <span className="text-[7px] font-black bg-amber-500 text-black px-2 py-0.5 rounded uppercase tracking-widest">★ MVP</span>}
                                     </div>
                                 </div>
                             </div>

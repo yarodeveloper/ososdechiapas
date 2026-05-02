@@ -123,9 +123,9 @@ const updatePlayer = async (req, res) => {
       [name, birth_date || null, curp, position_id || null, category_id || null, blood_type_id || null, emergency_phone || null, allergies || null, jersey_number || null, photo_url, status || 'active', deactivation_reason || null, id]
     );
 
-    // Sync user status
+    // Sync user status (Block access only if status is 'baja')
     if (existing[0].user_id) {
-       const userIsActive = (status === 'inactive') ? 0 : 1;
+       const userIsActive = (status === 'baja') ? 0 : 1;
        await db.query('UPDATE users SET is_active=? WHERE id=?', [userIsActive, existing[0].user_id]);
     }
 

@@ -290,12 +290,16 @@ const Payments = () => {
                                 {p.receipt_url && (
                                     <div className="border rounded-2xl p-4 flex items-center justify-between" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-dim)' }}>
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5 5 5-5m-5 5V3"/></svg>
-                                            </div>
+                                            {/* Receipt Thumbnail */}
+                                            <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="w-12 h-16 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden flex-shrink-0 group/img relative shadow-inner">
+                                                <img src={p.receipt_url} alt="Ticket" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform" />
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                                </div>
+                                            </a>
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Referencia: {p.payment_method || 'SPEI'}</span>
-                                                <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black text-amber-500 uppercase tracking-widest underline">Ver Ticket Adjunto</a>
+                                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Validar Comprobante</span>
                                             </div>
                                         </div>
                                         <button 

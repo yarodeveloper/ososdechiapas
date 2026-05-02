@@ -17,7 +17,11 @@ const getLeaderboard = async (req, res) => {
         const { sortBy } = req.query; 
         let ord = 'total_touchdowns';
         if (sortBy === 'yards') ord = 'total_yards';
+        if (sortBy === 'yards_passing') ord = 'total_passing';
+        if (sortBy === 'yards_rushing') ord = 'total_rushing';
         if (sortBy === 'tackles') ord = 'total_tackles';
+        if (sortBy === 'interceptions') ord = 'total_interceptions';
+        if (sortBy === 'sacks') ord = 'total_sacks';
 
         const [rows] = await db.query(`
             SELECT 
@@ -26,7 +30,11 @@ const getLeaderboard = async (req, res) => {
                 SUM(s.td_offense) as total_td_offense,
                 SUM(s.td_defense) as total_td_defense,
                 SUM(s.yards_passing + s.yards_rushing + s.yards_receiving) as total_yards,
+                SUM(s.yards_passing) as total_passing,
+                SUM(s.yards_rushing) as total_rushing,
                 SUM(s.tackles) as total_tackles,
+                SUM(s.interceptions) as total_interceptions,
+                SUM(s.sacks) as total_sacks,
                 (SELECT COUNT(*) FROM player_stats WHERE player_id = p.id AND is_mvp = 1) as mvp_count
             FROM players p
             JOIN player_stats s ON p.id = s.player_id
@@ -113,12 +121,63 @@ const savePlayerStats = async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('SQL ERROR:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'ERROR SQL DETECTADO', 
-            error: error.message,
-            sqlMessage: error.sqlMessage 
-        });
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// GUARDAR ESTADÍSTICAS POR LOTE (Planilla completa de un partido)
+const saveMatchStats = async (req, res) => {
+    const { matchId } = req.params;
+    const { performances } = req.body; // Arreglo de { player_id, touchdowns, ... }
+
+    if (!performances || !Array.isArray(performances)) {
+        return res.status(400).json({ message: "Se requiere un arreglo de desempeños" });
+    }
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        for (const p of performances) {
+            const yp = parseInt(p.yards_passing) || 0;
+            const yr = parseInt(p.yards_rushing) || 0;
+            const yrec = parseInt(p.yards_receiving) || 0;
+            const td_off = parseInt(p.td_offense) || 0;
+            const td_def = parseInt(p.td_defense) || 0;
+            const tds = td_off + td_def;
+            const tck = parseInt(p.tackles) || 0;
+            const ints = parseInt(p.interceptions) || 0;
+            const sks = parseInt(p.sacks) || 0;
+            const ext = parseInt(p.points_extra) || 0;
+            const mvp = (p.is_mvp === true || p.is_mvp === 1 || p.is_mvp === 'true') ? 1 : 0;
+
+            const [existing] = await connection.query(
+                'SELECT id FROM player_stats WHERE player_id = ? AND game_id = ?', 
+                [p.player_id, matchId]
+            );
+
+            if (existing.length > 0) {
+                await connection.query(`
+                    UPDATE player_stats SET 
+                    yards_passing=?, yards_rushing=?, yards_receiving=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
+                    WHERE id=?
+                `, [yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
+            } else {
+                await connection.query(`
+                    INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [p.player_id, matchId, yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
+            }
+        }
+
+        await connection.commit();
+        res.json({ success: true, message: "Estadísticas guardadas correctamente" });
+    } catch (error) {
+        await connection.rollback();
+        console.error('BATCH STATS ERROR:', error);
+        res.status(500).json({ success: false, message: error.message });
+    } finally {
+        connection.release();
     }
 };
 
@@ -156,4 +215,4 @@ const getPlayerResume = async (req, res) => {
     } catch (e) { res.status(500).json({ message: e.message }); }
 };
 
-module.exports = { getMatchStats, savePlayerStats, getPlayerResume, getStatsCatalogs, getLeaderboard, getGlobalMvps };
+module.exports = { getMatchStats, savePlayerStats, saveMatchStats, getPlayerResume, getStatsCatalogs, getLeaderboard, getGlobalMvps };

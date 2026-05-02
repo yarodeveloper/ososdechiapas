@@ -104,14 +104,14 @@ const Dashboard = () => {
            <div className="flex justify-between items-end">
               <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-dim)' }}>Agenda de Hoy</h3>
               <div className="flex gap-1.5">
-                 {highlights.map((_, i) => (
+                 {highlights?.map((_, i) => (
                     <div key={i} className="w-1.5 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === 0 ? 'var(--primary)' : 'var(--border-main)', width: i === 0 ? '12px' : '6px' }}></div>
                  ))}
               </div>
            </div>
 
            <div className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 snap-x snap-mandatory pb-4">
-              {highlights.length > 0 ? highlights.map((item, idx) => (
+              {highlights?.length > 0 ? highlights.map((item, idx) => (
                  <div key={idx} className="min-w-[320px] snap-center relative group">
                     <div className={`absolute -inset-1 rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000 ${item.urgent ? 'bg-red-600' : 'bg-zinc-600'}`}></div>
                     <div className="card relative p-8 space-y-6 overflow-hidden border-2" style={{ borderColor: 'var(--border-main)' }}>
@@ -206,7 +206,7 @@ const Dashboard = () => {
               <div className="w-8 h-px" style={{ backgroundColor: 'var(--border-main)' }}></div>
            </div>
            <div className="flex gap-4 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar touch-pan-x">
-              {lastResults.length > 0 ? lastResults.map(match => (
+              {lastResults?.length > 0 ? lastResults.map(match => (
                  <div key={match.id} className="card min-w-[240px] p-6 relative overflow-hidden group/card active:scale-[0.98] transition-transform">
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                        <SvgIcon src="/icons/trophy-svgrepo-com.svg" className="w-12 h-12 text-white" />

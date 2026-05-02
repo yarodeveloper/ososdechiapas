@@ -8,6 +8,7 @@ router.get('/player/:player_id', statsController.getPlayerResume);
 router.get('/player/:player_id/history', statsController.getPlayerResume);
 router.get('/leaderboard/global/mvps', statsController.getGlobalMvps);
 router.get('/leaderboard/:category_id', statsController.getLeaderboard); // Nueva ruta para el top de jugadores
+router.post('/match/:matchId', statsController.saveMatchStats);
 router.post('/', statsController.savePlayerStats);
 
 module.exports = router;

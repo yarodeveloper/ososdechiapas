@@ -73,28 +73,57 @@ const PlayerDetail = () => {
         load();
     }, [id]);
 
-    const handleSave = async () => {
-        // Confirm archiving if status is changing to inactive
-        if (formData.status === 'inactive' && player.status !== 'inactive') {
-            const ok = window.confirm("¿Estás seguro de dar de baja a este jugador? Se ocultará del roster activo pero sus datos históricos se conservarán.");
-            if (!ok) return;
-        }
 
+    const handleSave = async (e, forceStatus = null, reason = null) => {
+        console.log('--- ENTERING handleSave ---');
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
         setSaving(true);
         try {
             const data = new FormData();
-            Object.entries(formData).forEach(([k, v]) => data.append(k, v));
-            if (photoFile) data.append('photo', photoFile);
+            console.log('ID:', id);
+            console.log('ForceStatus:', forceStatus);
+            const finalReason = reason || deactivationReason;
+            console.log('Final Reason:', finalReason);
+            console.log('Current FormData:', formData);
+            
+            // Si pasamos un estatus forzado (ej: desde botones de acción rápida o modal de baja)
+            if (forceStatus) {
+                data.append('status', forceStatus);
+                if (reason) data.append('deactivation_reason', reason);
+                else if (deactivationReason) data.append('deactivation_reason', deactivationReason);
+
+                // Mantenemos los datos actuales importantes
+                Object.entries(formData).forEach(([k, v]) => {
+                    if (k !== 'status' && k !== 'deactivation_reason') {
+                        data.append(k, v || '');
+                    }
+                });
+            } else {
+                // Guardado normal desde el formulario
+                Object.entries(formData).forEach(([k, v]) => {
+                    data.append(k, v || '');
+                });
+                if (photoFile) data.append('photo', photoFile);
+            }
 
             const res = await fetch(`/api/players/${id}`, { method: 'PUT', body: data });
-            if (!res.ok) throw new Error(await res.text());
+            if (!res.ok) {
+                const error = await res.text();
+                throw new Error(error);
+            }
 
-            // Refresh
-            const updated = await fetch(`/api/stats/player/${id}?t=${Date.now()}`); // force reload
+            // Recargar datos actualizados
+            const updated = await fetch(`/api/stats/player/${id}?t=${Date.now()}`);
             const updatedData = await updated.json();
+            
             setPlayer(updatedData);
             setFormData({
                 ...formData,
+                status: updatedData.status || 'active',
                 parent_name: updatedData.parent_name || '',
                 parent_email: updatedData.parent_email || '',
                 parent_phone: updatedData.parent_phone || ''
@@ -102,8 +131,17 @@ const PlayerDetail = () => {
             setEditing(false);
             setPhotoFile(null);
             setPhotoPreview(null);
+            
+            if (forceStatus === 'baja') {
+                setShowDeactivateModal(false);
+                alert('Jugador dado de baja correctamente.');
+                window.location.reload();
+            } else if (forceStatus) {
+                alert('Estatus actualizado correctamente.');
+            }
         } catch (err) {
-            alert('Error al guardar: ' + err.message);
+            console.error(err);
+            alert('Error al procesar: ' + err.message);
         } finally {
             setSaving(false);
         }
@@ -134,100 +172,52 @@ const PlayerDetail = () => {
     const labelCls = "text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-1.5 ml-1";
 
     return (
-        <div className="bg-black text-white min-h-screen pb-20 selection:bg-red-600 selection:text-white">
+        <div className="min-h-screen pb-20 selection:bg-red-600 selection:text-white" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
             {/* Header Sticky */}
-            <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900 px-6 py-4">
+            <header className="sticky top-0 z-50 backdrop-blur-md border-b px-6 py-4" style={{ backgroundColor: 'var(--bg-header)', borderColor: 'var(--border-main)' }}>
                 <div className="max-w-md mx-auto flex items-center justify-between">
-                    <button onClick={() => editing ? setEditing(false) : navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-zinc-900 rounded-full active:scale-95 transition-transform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d={editing ? "M18 6L6 18M6 6l12 12" : "M15 18l-6-6 6-6"} /></svg>
+                    <button onClick={() => editing ? setEditing(false) : navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-zinc-900 rounded-full active:scale-95 transition-transform border border-zinc-800">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d={editing ? "M18 6L6 18M6 6l12 12" : "M15 18l-6-6 6-6"} /></svg>
                     </button>
-                    <span className="font-display font-black text-xs uppercase tracking-widest text-zinc-500">
+                    <span className="font-display font-black text-[10px] uppercase tracking-[0.2em]" style={{ color: 'var(--text-dim)' }}>
                         {editing ? 'Editar Jugador' : 'Player Card'}
                     </span>
                     {isStaff ? (
                         <button 
                             onClick={() => editing ? handleSave() : setEditing(true)}
                             disabled={saving}
-                            className="text-xs font-black uppercase tracking-widest text-red-600 hover:text-red-500 transition-colors disabled:opacity-50"
+                            className="w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-50"
+                            style={{ backgroundColor: editing ? 'var(--primary)' : 'var(--bg-card)', color: editing ? 'white' : 'var(--primary)', border: editing ? 'none' : '1px solid var(--border-main)' }}
                         >
-                            {editing ? (saving ? '...' : 'OK') : 'Edit'}
+                            {editing ? (
+                                saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            )}
                         </button>
-                    ) : <div className="w-10 h-10"></div>}
+                    ) : <div className="w-10"></div>}
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto px-6 pt-6 animate-fade">
-                {!editing && player.status === 'inactive' && (
-                    <div className="mb-6 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500">
+            <main className="max-w-md mx-auto px-6 pt-6">
+                {!editing && player?.status === 'baja' && (
+                    <div className="mb-6 bg-red-950/20 border border-red-900/30 rounded-2xl p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-900/40">
                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Jugador Archivado</p>
-                            <p className="text-[9px] font-medium text-zinc-600 leading-tight mt-0.5">Motivo: {player.deactivation_reason || 'No especificado'}</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Deactivation Modal */}
-                {showDeactivateModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeactivateModal(false)}></div>
-                        <div className="relative border rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
-                            <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--primary)]"></div>
-                            <h2 className="text-xl font-display font-black uppercase italic italic tracking-tighter mb-4" style={{ color: 'var(--text-main)' }}>Baja del Equipo</h2>
-                            <p className="text-xs mb-6 leading-relaxed" style={{ color: 'var(--text-dim)' }}>
-                                Se ocultará del roster y <b style={{ color: 'var(--primary)' }}>se bloqueará el acceso al portal</b> para el tutor. Sus estadísticas se conservarán.
+                            <p className="text-[10px] font-black uppercase tracking-widest text-red-500">Baja Definitiva</p>
+                            <p className="text-[9px] font-medium leading-tight mt-0.5" style={{ color: 'var(--text-dim)' }}>
+                                <span className="opacity-50 uppercase text-[8px] font-black mr-1">Motivo:</span> 
+                                {player?.deactivation_reason || 'No especificado'}
                             </p>
-                            
-                            <div className="space-y-4 mb-8">
-                                <div>
-                                    <label className="text-[9px] font-black uppercase tracking-widest block mb-2 ml-1" style={{ color: 'var(--text-muted)' }}>Motivo de la Baja</label>
-                                    <select 
-                                        className="w-full border rounded-xl px-4 py-3 text-xs outline-none focus:border-[var(--primary)]"
-                                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
-                                        value={deactivationReason}
-                                        onChange={e => setDeactivationReason(e.target.value)}
-                                    >
-                                        <option>Cambio de equipo</option>
-                                        <option>Baja voluntaria</option>
-                                        <option>Expulsión / Disciplina</option>
-                                        <option>Mudanza</option>
-                                        <option>Lesión larga duración</option>
-                                        <option>Otro</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-3">
-                                <button 
-                                    onClick={async () => {
-                                        setSaving(true);
-                                        try {
-                                            const body = new FormData();
-                                            Object.entries(formData).forEach(([k,v]) => body.append(k,v));
-                                            body.set('status', 'inactive');
-                                            body.set('deactivation_reason', deactivationReason);
-                                            
-                                            const res = await fetch(`/api/players/${id}`, { method: 'PUT', body });
-                                            if (res.ok) {
-                                                setShowDeactivateModal(false);
-                                                window.location.reload();
-                                            }
-                                        } catch (e) {} finally { setSaving(false); }
-                                    }}
-                                    className="w-full bg-[var(--primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl shadow-red-900/40 active:scale-95 transition-all"
-                                >
-                                    Confirmar Baja Definitiva
-                                </button>
-                                <button onClick={() => setShowDeactivateModal(false)} className="w-full py-3 text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Cancelar</button>
-                            </div>
                         </div>
                     </div>
                 )}
+
+                
                 
                 {editing ? (
-                    /* ── EDIT MODE ── */
                     <div className="space-y-6">
                         <div className="flex flex-col items-center mb-8">
                              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -292,27 +282,6 @@ const PlayerDetail = () => {
                                 <textarea className={`${inputCls} h-24`} value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} />
                             </div>
 
-                            <div className="pt-4 border-t border-zinc-900">
-                                <label className={labelCls}>Estatus del Jugador</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setFormData({...formData, status: 'active'})}
-                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${formData.status === 'active' ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
-                                    >
-                                        Activo
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onClick={() => setFormData({...formData, status: 'inactive'})}
-                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${formData.status === 'inactive' ? 'bg-zinc-700 border-zinc-600 text-white shadow-lg shadow-zinc-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
-                                    >
-                                        Inactivo (Baja)
-                                    </button>
-                                </div>
-                                <p className="mt-2 text-[8px] text-zinc-600 italic">Los jugadores inactivos se ocultan del roster principal pero conservan sus datos.</p>
-                            </div>
-
                             <div className="pt-4 mt-4 border-t border-zinc-900 border-dashed">
                                 <h3 className="text-sm font-black italic uppercase text-zinc-500 mb-4">Datos del Tutor</h3>
                                 <div>
@@ -333,7 +302,7 @@ const PlayerDetail = () => {
                         </div>
 
                         <button 
-                            onClick={handleSave}
+                            onClick={(e) => handleSave(e)}
                             className="w-full bg-red-600 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-red-900/40 active:scale-95 transition-transform"
                         >
                             {saving ? 'Guardando...' : 'Guardar Cambios'}
@@ -347,26 +316,88 @@ const PlayerDetail = () => {
                             <div className="relative bg-zinc-950 border border-zinc-800 rounded-[2.5rem] overflow-hidden p-8 flex flex-col items-center">
                                 <div className="absolute top-6 left-6 flex flex-col items-center">
                                     <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-0.5">POS</span>
-                                    <span className="text-xl font-display font-black text-white uppercase italic">{player.position_name?.match(/\(([^)]+)\)/)?.[1] || 'JDR'}</span>
+                                    <span className="text-xl font-display font-black text-white uppercase italic">{player?.position_name?.match(/\(([^)]+)\)/)?.[1] || 'JDR'}</span>
                                 </div>
                                 <div className="absolute top-6 right-6 flex flex-col items-center">
                                     <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">NUM</span>
-                                    <span className="text-xl font-display font-black text-white italic">#{player.jersey_number || '00'}</span>
+                                    <span className="text-xl font-display font-black text-white italic">#{player?.jersey_number || '00'}</span>
                                 </div>
-                                <div className={`w-40 h-40 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-4 ${player.status === 'inactive' ? 'grayscale opacity-60' : ''}`}>
+                                <div className={`w-40 h-40 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-4 ${player?.status !== 'active' ? 'grayscale opacity-60' : ''}`}>
                                     {player.photo_url ? <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-display font-black text-zinc-700">{initials}</div>}
                                 </div>
-                                <h1 className="text-3xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2">{player.name}</h1>
+                                <h1 className="text-3xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2">{player?.name || '---'}</h1>
                                 <div className="flex items-center gap-2">
                                     <span className="bg-red-600/10 text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-red-600/20">Osos {player.category_name}</span>
-                                    {player.status === 'inactive' && (
-                                        <span className="bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-zinc-700 flex items-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-600"></div>
-                                            Baja / Archivo
+                                    {player?.status === 'inactive' && (
+                                        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border flex items-center gap-1.5 bg-amber-600/10 text-amber-500 border-amber-600/20">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                                            En Pausa
+                                        </span>
+                                    )}
+                                    {player?.status === 'baja' && (
+                                        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border flex items-center gap-1.5 bg-red-600/10 text-red-500 border-red-600/20">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+                                            Baja Definitiva
                                         </span>
                                     )}
                                 </div>
                             </div>
+                        </section>
+
+                        {/* Quick Management Actions (Unified UX) */}
+                        <section className="mb-8 space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] italic" style={{ color: 'var(--text-dim)' }}>Gestión de Jugador</h3>
+                                <div className="h-px flex-1 ml-4" style={{ backgroundColor: 'var(--border-main)' }}></div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                {player?.status === 'inactive' ? (
+                                    <button 
+                                        type="button"
+                                        onClick={(e) => handleSave(e, 'active')}
+                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-red-900/20 active:scale-95 transition-all"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7"/></svg>
+                                        Reactivar Jugador
+                                    </button>
+                                ) : (
+                                    player?.status !== 'baja' && (
+                                        <button 
+                                            type="button"
+                                            onClick={(e) => handleSave(e, 'inactive')}
+                                            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-900/20 active:scale-95 transition-all"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Poner en Pausa
+                                        </button>
+                                    )
+                                )}
+
+                                {player?.status === 'baja' ? (
+                                    <button 
+                                        type="button"
+                                        onClick={(e) => handleSave(e, 'active')}
+                                        className="col-span-2 flex items-center justify-center gap-2 py-4 rounded-2xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-red-900/20 active:scale-95 transition-all"
+                                    >
+                                        Reincorporar al Equipo
+                                    </button>
+                                ) : (
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowDeactivateModal(true)}
+                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18.36 6.64a9 9 0 11-12.73 0M12 2v10"/></svg>
+                                        Dar de Baja
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {player?.status === 'inactive' && (
+                                <p className="text-[9px] text-amber-600/70 italic text-center px-4 font-medium">El jugador está en el roster pero no participa temporalmente.</p>
+                            )}
                         </section>
 
                         <div className="flex bg-zinc-950 p-1 rounded-2xl border border-zinc-900 mb-8">
@@ -376,25 +407,34 @@ const PlayerDetail = () => {
 
                         {activeTab === 'stats' ? (
                             <div className="space-y-8 animate-fade">
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="border p-5 rounded-3xl flex flex-col items-center" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="border p-5 rounded-3xl flex flex-col items-center col-span-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                                         <div className="flex flex-col items-center mb-1">
-                                            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>TDs</span>
-                                            <div className="flex gap-2 text-[8px] font-bold uppercase" style={{ color: 'var(--text-muted)' }}>
-                                                <span>OF: {player.total_td_offense || 0}</span>
+                                            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Touchdowns Totales</span>
+                                            <div className="flex gap-4 text-[9px] font-bold uppercase mt-1">
+                                                <span className="text-red-500">OFENSIVA: {player.total_td_offense || 0}</span>
                                                 <span style={{ color: 'var(--border-main)' }}>|</span>
-                                                <span>DF: {player.total_td_defense || 0}</span>
+                                                <span className="text-blue-500">DEFENSIVA: {player.total_td_defense || 0}</span>
                                             </div>
                                         </div>
-                                        <span className="text-2xl font-display font-black leading-none" style={{ color: 'var(--primary)' }}>{player.total_tds || 0}</span>
+                                        <span className="text-4xl font-display font-black leading-none mt-2" style={{ color: 'var(--primary)' }}>{player.total_tds || 0}</span>
+                                    </div>
+                                    
+                                    <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
+                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Yardas Pase</span>
+                                        <span className="text-xl font-display font-black text-white">{player.total_passing || 0}</span>
                                     </div>
                                     <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
-                                        <span className="text-[11px] font-black text-zinc-600 uppercase tracking-widest mb-2">Yards</span>
-                                        <span className="text-2xl font-display font-black text-white">{(player.total_rushing || 0) + (player.total_passing || 0) + (player.total_receiving || 0)}</span>
+                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Yardas Carrera</span>
+                                        <span className="text-xl font-display font-black text-white">{player.total_rushing || 0}</span>
                                     </div>
                                     <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
-                                        <span className="text-[11px] font-black text-zinc-600 uppercase tracking-widest mb-2">Tackles</span>
-                                        <span className="text-2xl font-display font-black text-white">{player.total_tackles || 0}</span>
+                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Tackleos</span>
+                                        <span className="text-xl font-display font-black text-white">{player.total_tackles || 0}</span>
+                                    </div>
+                                    <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
+                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Intercep / Sacks</span>
+                                        <span className="text-xl font-display font-black text-white">{(player.total_interceptions || 0)} / {(player.total_sacks || 0)}</span>
                                     </div>
                                 </div>
 
@@ -408,14 +448,14 @@ const PlayerDetail = () => {
                                             {history.map(match => (
                                                 <div key={match.id} className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-5 flex flex-col gap-4">
                                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                                                        <span>{new Date(match.match_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>
-                                                        <span className="text-red-600">VS {match.visitor_team_name}</span>
+                                                        <span>{new Date(match.event_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>
+                                                        <span className="text-red-600 font-bold">VS {match.event_title}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-4 gap-2">
-                                                        <div className="flex flex-col"><span className="text-[8px] font-bold text-zinc-600 uppercase mb-0.5">TD</span><span className="text-sm font-display font-black">{match.touchdowns}</span></div>
-                                                        <div className="flex flex-col"><span className="text-[8px] font-bold text-zinc-600 uppercase mb-0.5">YDS</span><span className="text-sm font-display font-black">{match.yards_rushing + match.yards_passing + match.yards_receiving}</span></div>
-                                                        <div className="flex flex-col"><span className="text-[8px] font-bold text-zinc-600 uppercase mb-0.5">TCK</span><span className="text-sm font-display font-black">{match.tackles}</span></div>
-                                                        <div className="flex flex-col"><span className="text-[8px] font-bold text-zinc-600 uppercase mb-0.5">MVP</span><span className="text-sm font-display font-black">{match.is_mvp ? '★' : '—'}</span></div>
+                                                    <div className="grid grid-cols-4 gap-4 border-t border-zinc-800/50 pt-3">
+                                                        <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">TD (OF/DF)</span><span className="text-xs font-black">{match.td_offense}/{match.td_defense}</span></div>
+                                                        <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">YDS (P/R/R)</span><span className="text-xs font-black">{match.yards_passing}/{match.yards_rushing}/{match.yards_receiving}</span></div>
+                                                        <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">DEF (T/I/S)</span><span className="text-xs font-black">{match.tackles}/{match.interceptions}/{match.sacks}</span></div>
+                                                        <div className="flex flex-col items-end"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">MVP</span><span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] ${match.is_mvp ? 'bg-amber-500 text-black shadow-lg shadow-amber-900/40' : 'bg-zinc-800 text-zinc-600'}`}>{match.is_mvp ? '★' : '—'}</span></div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -563,6 +603,59 @@ const PlayerDetail = () => {
                             </div>
                         )}
 
+                        {/* Deactivation Modal Moved Here */}
+                        {showDeactivateModal && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-fade h-screen w-screen top-0 left-0">
+                                <div className="absolute inset-0" onClick={() => setShowDeactivateModal(false)}></div>
+                                <div className="relative border rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                                    <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--primary)]"></div>
+                                    <h2 className="text-xl font-display font-black uppercase italic italic tracking-tighter mb-4" style={{ color: 'var(--text-main)' }}>Baja Definitiva</h2>
+                                    <p className="text-xs mb-6 leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                                        Esta acción <b style={{ color: 'var(--primary)' }}>BLOQUEARÁ el acceso al portal</b> para el tutor y archivará al jugador permanentemente.
+                                    </p>
+                                    
+                                    <div className="space-y-4 mb-8">
+                                        <div className="relative">
+                                            <label className="text-[9px] font-black uppercase tracking-widest block mb-2 ml-1" style={{ color: 'var(--text-muted)' }}>Motivo del Egreso</label>
+                                            <select 
+                                                className="w-full border rounded-xl px-4 py-3 text-xs outline-none focus:border-[var(--primary)] appearance-none"
+                                                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                                value={deactivationReason}
+                                                onChange={e => setDeactivationReason(e.target.value)}
+                                            >
+                                                <option>Cambio de equipo</option>
+                                                <option>Baja voluntaria</option>
+                                                <option>Expulsión / Disciplina</option>
+                                                <option>Mudanza</option>
+                                                <option>Lesión larga duración</option>
+                                                <option>Graduación / Edad</option>
+                                                <option>Otro</option>
+                                            </select>
+                                            <div className="absolute right-4 top-[38px] pointer-events-none opacity-40">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+        
+                                    <div className="flex flex-col gap-3">
+                                        <button 
+                                            type="button"
+                                            disabled={saving}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleSave(e, 'baja', deactivationReason);
+                                            }}
+                                            className="w-full bg-[var(--primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl shadow-red-900/40 active:scale-95 transition-all disabled:opacity-50"
+                                        >
+                                            {saving ? 'PROCESANDO...' : 'CONFIRMAR BAJA Y BLOQUEO'}
+                                        </button>
+                                        <button type="button" onClick={() => setShowDeactivateModal(false)} className="w-full py-3 text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Botón Compartir Tarjeta */}
                         <div className="mt-8 flex justify-center">
                             <button 
@@ -596,7 +689,7 @@ const PlayerDetail = () => {
                                         {/* Player Image with Glow */}
                                         <div className="relative mb-8 group">
                                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-red-600 to-transparent blur-3xl opacity-30"></div>
-                                            <div className="w-48 h-48 rounded-full border-4 border-red-600 p-1.5 shadow-2xl relative z-10">
+                                            <div className={`w-48 h-48 rounded-full border-4 border-red-600 p-1.5 shadow-2xl relative z-10 ${player.status === 'baja' ? 'grayscale opacity-60' : ''}`}>
                                                 <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden border-2 border-black">
                                                     {player.photo_url ? (
                                                         <img src={player.photo_url} className="w-full h-full object-cover" />
@@ -604,6 +697,20 @@ const PlayerDetail = () => {
                                                         <div className="w-full h-full flex items-center justify-center text-5xl font-display font-black text-zinc-800">{initials}</div>
                                                     )}
                                                 </div>
+                                                {player.status === 'baja' && (
+                                                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                                                        <div className="bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.5em] px-6 py-3 rounded-xl shadow-[0_0_40px_rgba(220,38,38,0.5)] rotate-[-12deg] border-4 border-white/20 backdrop-blur-sm">
+                                                            FUERA DE ROSTER
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {player.status === 'inactive' && (
+                                                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                                                        <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.5em] px-6 py-3 rounded-xl shadow-[0_0_40px_rgba(245,158,11,0.5)] rotate-[-12deg] border-4 border-white/20 backdrop-blur-sm">
+                                                            EN PAUSA
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             {/* Jersey Number Badge */}
                                             <div className="absolute -bottom-2 -right-2 w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center border-4 border-black text-white font-display font-black text-xl italic shadow-2xl">
@@ -612,10 +719,10 @@ const PlayerDetail = () => {
                                         </div>
 
                                         {/* Player Name */}
-                                        <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2 text-white drop-shadow-lg">
-                                            {player.name.split(' ').slice(0, 2).join('\n')}
+                                        <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2 text-white drop-shadow-lg whitespace-pre-line">
+                                            {(player?.name || '').split(' ').slice(0, 2).join('\n')}
                                         </h2>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-10 italic">Posición: {player.position_name?.match(/\(([^)]+)\)/)?.[1] || 'JDR'}</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-10 italic">Posición: {player?.position_name?.match(/\(([^)]+)\)/)?.[1] || 'JDR'}</p>
 
                                         {/* Stats Grid Highlight */}
                                         <div className="grid grid-cols-3 gap-1 w-full mt-auto">
