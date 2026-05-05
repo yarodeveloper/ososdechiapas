@@ -23,7 +23,11 @@ const PortalDashboard = () => {
         setUser(parsedUser);
         fetchData(parsedUser);
 
-        const socket = io('/');
+        const socket = io('/', {
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            timeout: 10000
+        });
         socket.on('new_event', (data) => {
             setNotification({ title: 'NUEVA ACTIVIDAD', message: data.title, type: 'calendar' });
             setTimeout(() => setNotification(null), 5000);
@@ -47,13 +51,20 @@ const PortalDashboard = () => {
                 fetch('/api/calendar?history=true'),
                 fetch('/api/social')
             ]);
-            setPlayers(await pRes.json());
+            const playersData = await pRes.json();
+            setPlayers(Array.isArray(playersData) ? playersData : []);
+
             const payData = await payRes.json();
-            setPayments(payData);
-            setAnnouncements(await annRes.json());
+            setPayments(Array.isArray(payData) ? payData : []);
+
+            const annData = await annRes.json();
+            setAnnouncements(Array.isArray(annData) ? annData : []);
+
             const calData = await calRes.json();
             const pastData = await pastRes.json();
-            setSocialPosts(await socRes.json());
+            
+            const socData = await socRes.json();
+            setSocialPosts(Array.isArray(socData) ? socData : []);
             
             // Smart Stack for Parents
             const finalHighlights = [];

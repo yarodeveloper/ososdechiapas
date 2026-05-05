@@ -18,7 +18,8 @@ const PortalFamilies = () => {
     const fetchPlayers = async (parentId) => {
         try {
             const res = await fetch(`/api/players/parent/${parentId}`);
-            setPlayers(await res.json());
+            const data = await res.json();
+            setPlayers(Array.isArray(data) ? data : []);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
     };

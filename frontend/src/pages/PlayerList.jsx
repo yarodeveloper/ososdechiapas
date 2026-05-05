@@ -123,8 +123,10 @@ const PlayerList = () => {
           fetch('/api/players'),
           fetch('/api/categories'),
         ]);
-        setPlayers(await playersRes.json());
-        setCategories(await catsRes.json());
+        const playersData = await playersRes.json();
+        const catsData = await catsRes.json();
+        setPlayers(Array.isArray(playersData) ? playersData : []);
+        setCategories(Array.isArray(catsData) ? catsData : []);
       } catch (e) {
         console.error(e);
       } finally {

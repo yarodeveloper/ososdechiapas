@@ -1,4 +1,5 @@
 const db = require('../config/db.js');
+const { formatToMySQL } = require('../utils/dateUtils');
 
 // ─── GET ALL PAYMENTS ─────────────────────────────────────────────────────────
 const getPayments = async (req, res) => {
@@ -66,14 +67,7 @@ const updatePaymentStatus = async (req, res) => {
 
     // paid_at might be NOW() if not provided
     // Ensure paid_at is in MySQL format if provided
-    let paidAtValue = null;
-    if (status === 'paid') {
-      if (paid_at) {
-        paidAtValue = new Date(paid_at).toISOString().slice(0, 19).replace('T', ' ');
-      } else {
-        paidAtValue = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      }
-    }
+    const paidAtValue = status === 'paid' ? formatToMySQL(paid_at || new Date()) : null;
 
     await db.query(
       `UPDATE payments SET status = ?, payment_method = ?, paid_at = ?

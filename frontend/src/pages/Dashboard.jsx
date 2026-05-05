@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import SvgIcon from '../components/SvgIcon';
 
@@ -7,7 +8,8 @@ const Dashboard = () => {
   const location = useLocation();
   const [dashboardData, setDashboardData] = useState({
     highlights: [], // Combined urgent and upcoming events
-    lastResults: []
+    lastResults: [],
+    leadsCount: 0
   });
 
   useEffect(() => {
@@ -15,38 +17,47 @@ const Dashboard = () => {
     const token = localStorage.getItem('token');
     if (!token) navigate('/login');
 
-    const fetchMatches = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const [nextRes, pastRes] = await Promise.all([
+        const [nextRes, pastRes, leadsRes] = await Promise.all([
           fetch('/api/calendar'),
-          fetch('/api/calendar?history=true')
+          fetch('/api/calendar?history=true'),
+          fetch('/api/leads')
         ]);
         const nextData = await nextRes.json();
         const pastData = await pastRes.json();
+        const leadsData = await leadsRes.json();
         
         const highlights = [];
-        
-        // 1. Prioritize past matches without stats (Urgent Action for Coach)
         const pendingStats = pastData.filter(e => e.event_type === 'match' && (e.stats_count === 0 || !e.score_osos));
         pendingStats.slice(0, 2).forEach(m => highlights.push({ ...m, isPast: true, urgent: true }));
-
-        // 2. Add the most immediate upcoming events (Next 3)
-        // Ensure we don't repeat the urgent ones if they happen to be in nextData
-        const upcoming = nextData
-          .filter(e => !highlights.some(h => h.id === e.id))
-          .slice(0, 3);
-        
+        const upcoming = nextData.filter(e => !highlights.some(h => h.id === e.id)).slice(0, 3);
         upcoming.forEach(e => highlights.push({ ...e, isPast: false }));
 
         setDashboardData({
           highlights: highlights,
-          lastResults: Array.isArray(pastData) ? pastData.slice(0, 3) : []
+          lastResults: Array.isArray(pastData) ? pastData.slice(0, 3) : [],
+          leadsCount: Array.isArray(leadsData) ? leadsData.filter(l => l.status === 'pending').length : 0
         });
       } catch (err) {
         console.error('Data error', err);
       }
     };
-    fetchMatches();
+
+    fetchDashboardData();
+
+    // Socket.io for Real-time Leads
+    const socket = io('/');
+    socket.on('new_lead', (data) => {
+        // Increment count and maybe show alert
+        setDashboardData(prev => ({ ...prev, leadsCount: prev.leadsCount + 1 }));
+        // Using a simple browser notification if possible or just rely on the UI update
+        if (Notification.permission === 'granted') {
+            new Notification('¡Nuevo Prospecto!', { body: `${data.name} quiere unirse a la manada.` });
+        }
+    });
+
+    return () => socket.disconnect();
   }, [navigate]);
 
   const { highlights, lastResults } = dashboardData;
@@ -188,12 +199,18 @@ const Dashboard = () => {
              { label: 'Roster', icon: 'group', link: '/players/list' },
              { label: 'Pagos', icon: 'table', link: '/admin/payments' },
              { label: 'Stats', icon: 'analytics', link: '/estadisticas' },
-             { label: 'Avisos', icon: 'comment', link: '/admin/announcements' }
+             { label: 'Avisos', icon: 'comment', link: '/admin/announcements' },
+             { label: 'Prospectos', icon: 'analytics', link: '/admin/leads', count: dashboardData.leadsCount }
            ].map((item, i) => (
-             <Link key={i} to={item.link} className="flex flex-col items-center gap-2.5 group active:scale-90 transition-all">
+             <Link key={i} to={item.link} className="flex flex-col items-center gap-2.5 group active:scale-90 transition-all relative">
                 <div className="w-[70px] h-[70px] rounded-3xl flex items-center justify-center shadow-sm group-hover:border-red-500 transition-all border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                    <SvgIcon src={`/icons/${item.icon}-svgrepo-com.svg`} className="w-7 h-7 transition-colors" style={{ color: 'var(--text-dim)' }} />
                 </div>
+                {item.count > 0 && (
+                   <div className="absolute top-0 right-0 w-6 h-6 bg-red-600 rounded-full border-2 border-[var(--bg-main)] flex items-center justify-center text-[10px] font-black text-white shadow-lg animate-bounce">
+                      {item.count}
+                   </div>
+                )}
                 <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-red-600 transition-colors" style={{ color: 'var(--text-dim)' }}>{item.label}</span>
              </Link>
            ))}

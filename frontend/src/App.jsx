@@ -26,6 +26,7 @@ import AdminStats from './pages/AdminStats';
 import PortalCalendar from './pages/PortalCalendar';
 import PortalFamilies from './pages/PortalFamilies';
 import PortalPlayerCard from './pages/PortalPlayerCard';
+import AdminLeads from './pages/AdminLeads';
 import { useEffect } from 'react';
 import './index.css';
 
@@ -65,6 +66,7 @@ const App = () => {
         <Route path="/portal/agenda" element={<PortalCalendar />} />
         <Route path="/portal/perfil" element={<PortalFamilies />} />
         <Route path="/portal/player/:id/playcard" element={<PortalPlayerCard />} />
+        <Route path="/admin/leads" element={<AdminLeads />} />
       </Routes>
     </Router>
   );

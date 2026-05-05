@@ -94,7 +94,7 @@ const ResultsGrid = () => (
     <div className="flex justify-between items-end mb-8">
       <div>
         <span className="text-red-600 font-display font-black text-[10px] uppercase tracking-[0.2em] block mb-1">Historial</span>
-        <h2 className="text-4xl font-display font-black uppercase italic italic">Resultados</h2>
+        <h2 className="text-4xl font-display font-black uppercase italic italic text-red-600">Resultados</h2>
       </div>
       <div className="flex gap-2">
         <div className="w-8 h-1 bg-red-600 opacity-20"></div>
@@ -113,7 +113,7 @@ const ResultsGrid = () => (
           </div>
           <p className="text-zinc-500 text-[11px] font-black uppercase mb-2 tracking-widest">vs {i === 0 ? 'Aguilas' : 'Lobos'}</p>
           <div className="flex items-center justify-between">
-            <span className="text-4xl font-display font-black group-active:text-red-500 transition-colors italic italic tracking-tighter">
+            <span className="text-4xl font-display font-black text-red-600 group-active:text-red-500 transition-colors italic italic tracking-tighter">
               {i === 0 ? '28 - 14' : '21 - 24'}
             </span>
             <div className="w-12 h-12 rounded-2xl bg-zinc-800/50 flex items-center justify-center p-3">
@@ -305,7 +305,6 @@ const Home = () => {
       <Navbar />
       <Hero />
       <ResultsGrid />
-      <StatsPromo />
       <FeedComponent />
       <CaptureForm />
       <FooterComponent />
