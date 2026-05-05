@@ -14,7 +14,14 @@ const router = express.Router();
 router.get('/',           getPayments);
 router.get('/user/:userId', getPaymentsByUser);
 router.post('/',          createPayment);
-router.post('/:id/report', upload.single('receipt'), reportPayment);
+router.post('/:id/report', (req, res, next) => {
+  upload.single('receipt')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Error al subir comprobante", error: err.message });
+    }
+    next();
+  });
+}, reportPayment);
 router.put('/:id',        updatePaymentStatus);
 router.delete('/:id',     deletePayment);
 

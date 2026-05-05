@@ -180,20 +180,18 @@ const getPlayersByParent = async (req, res) => {
     const { parentId } = req.params;
     const [rows] = await db.query(`
       SELECT 
-        p.*, 
+        p.id, p.name, p.photo_url, p.jersey_number, p.position_id, p.category_id, p.user_id, p.status,
         c.name as category_name, 
         pos.name as position_name,
-        SUM(pp.touchdowns) as total_tds,
-        SUM(pp.yards_rushing) as total_rushing,
-        SUM(pp.yards_passing) as total_passing,
-        SUM(pp.yards_receiving) as total_receiving,
-        SUM(pp.tackles) as total_tackles
+        COALESCE((SELECT SUM(touchdowns) FROM player_stats WHERE player_id = p.id), 0) as total_tds,
+        COALESCE((SELECT SUM(yards_rushing) FROM player_stats WHERE player_id = p.id), 0) as total_rushing,
+        COALESCE((SELECT SUM(yards_passing) FROM player_stats WHERE player_id = p.id), 0) as total_passing,
+        COALESCE((SELECT SUM(yards_receiving) FROM player_stats WHERE player_id = p.id), 0) as total_receiving,
+        COALESCE((SELECT SUM(tackles) FROM player_stats WHERE player_id = p.id), 0) as total_tackles
       FROM players p
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
-      LEFT JOIN player_performance pp ON p.id = pp.player_id
       WHERE p.user_id = ?
-      GROUP BY p.id
       ORDER BY p.name ASC
     `, [parentId]);
     res.status(200).json(rows);

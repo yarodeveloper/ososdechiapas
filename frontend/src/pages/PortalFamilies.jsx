@@ -41,7 +41,7 @@ const PortalFamilies = () => {
                 <section className="rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                     <div className="flex items-center gap-6 relative z-10">
                         <div className="w-20 h-20 rounded-full border-4 border-red-600/20 overflow-hidden" style={{ backgroundColor: 'var(--bg-main)' }}>
-                            <img src={user?.image_url || 'https://i.pravatar.cc/100'} className="w-full h-full object-cover" />
+                            <img src={user?.avatar_url || 'https://i.pravatar.cc/100'} className="w-full h-full object-cover" />
                         </div>
                         <div>
                             <span className="text-[10px] font-black text-red-600 tracking-widest leading-none block italic">Tutor Oficial</span>
@@ -64,7 +64,7 @@ const PortalFamilies = () => {
                                 <div className="absolute top-0 right-0 p-6 opacity-5"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg></div>
                                 
                                 <div className="flex items-center gap-6 relative z-10">
-                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-red-600 text-3xl font-black italic shadow-lg border" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>#{p.number}</div>
+                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-red-600 text-3xl font-black italic shadow-lg border" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>#{p.jersey_number || '00'}</div>
                                     <div className="flex-1">
                                         <h4 className="text-xl font-black italic uppercase leading-none">{p.name}</h4>
                                         <div className="flex items-center gap-3 mt-2 text-[9px] font-black tracking-widest" style={{ color: 'var(--text-dim)' }}>

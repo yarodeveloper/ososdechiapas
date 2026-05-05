@@ -106,7 +106,7 @@ const PortalDashboard = () => {
                 <header className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full border-2 border-red-600 overflow-hidden" style={{ backgroundColor: 'var(--bg-card)' }}>
-                            <img src={user?.image_url || 'https://i.pravatar.cc/100'} alt="Profile" className="w-full h-full object-cover" />
+                            <img src={user?.avatar_url || 'https://i.pravatar.cc/100'} alt="Profile" className="w-full h-full object-cover" />
                         </div>
                         <h1 className="text-lg font-black tracking-tighter uppercase italic">Club <span className="text-red-600">Osos</span></h1>
                     </div>
