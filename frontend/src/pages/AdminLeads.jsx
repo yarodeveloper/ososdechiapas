@@ -108,7 +108,12 @@ const AdminLeads = () => {
                         <button 
                             key={f} 
                             onClick={() => setFilter(f)}
-                            className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${filter === f ? 'bg-red-600 text-white border-red-600 shadow-lg shadow-red-900/20' : 'bg-zinc-900/50 text-zinc-500 border-zinc-800'}`}
+                            className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${filter === f ? 'bg-red-600 text-white border-red-600 shadow-lg shadow-red-900/20' : ''}`}
+                            style={{ 
+                                backgroundColor: filter === f ? '' : 'var(--bg-card)', 
+                                color: filter === f ? 'white' : 'var(--text-dim)',
+                                borderColor: filter === f ? '' : 'var(--border-main)'
+                            }}
                         >
                             {f === 'all' ? 'Todos' : getStatusLabel(f)}
                         </button>
@@ -168,8 +173,8 @@ const AdminLeads = () => {
                                         <select 
                                             value={lead.status}
                                             onChange={(e) => updateStatus(lead.id, e.target.value)}
-                                            className="px-4 bg-zinc-900 border border-zinc-800 rounded-xl text-[8px] font-black uppercase outline-none focus:border-red-600"
-                                            style={{ color: 'var(--text-dim)' }}
+                                            className="px-4 border rounded-xl text-[8px] font-black uppercase outline-none focus:border-red-600"
+                                            style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-dim)', borderColor: 'var(--border-main)' }}
                                         >
                                             <option value="pending">Marcar Pendiente</option>
                                             <option value="contacted">Marcar Contactado</option>
@@ -178,7 +183,8 @@ const AdminLeads = () => {
                                         </select>
                                         <button 
                                             onClick={() => deleteLead(lead.id)}
-                                            className="w-11 h-11 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-600 hover:text-red-500 transition-colors"
+                                            className="w-11 h-11 border rounded-xl flex items-center justify-center hover:text-red-500 transition-colors"
+                                            style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-muted)' }}
                                         >
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                                         </button>
