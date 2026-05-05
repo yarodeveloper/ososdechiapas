@@ -35,11 +35,13 @@ const PortalPlayerCard = () => {
     const totals = stats.reduce((acc, s) => ({
         yards: acc.yards + (parseInt(s.yards_passing) || 0) + (parseInt(s.yards_rushing) || 0) + (parseInt(s.yards_receiving) || 0),
         tds: acc.tds + (parseInt(s.touchdowns) || 0),
+        td_off: acc.td_off + (parseInt(s.td_offense) || 0),
+        td_def: acc.td_def + (parseInt(s.td_defense) || 0),
         tackles: acc.tackles + (parseInt(s.tackles) || 0),
         ints: acc.ints + (parseInt(s.interceptions) || 0),
         sacks: acc.sacks + (parseInt(s.sacks) || 0),
         extra: acc.extra + (parseInt(s.points_extra) || 0)
-    }), { yards: 0, tds: 0, tackles: 0, ints: 0, sacks: 0, extra: 0 });
+    }), { yards: 0, tds: 0, td_off: 0, td_def: 0, tackles: 0, ints: 0, sacks: 0, extra: 0 });
 
     const chartData = {
         labels: [...stats].reverse().map(s => {
@@ -93,7 +95,7 @@ const PortalPlayerCard = () => {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 </button>
                 <h1 className="text-[10px] font-black uppercase tracking-[0.3em] italic text-zinc-500">Playcard <span className="text-red-600 font-black">Elite</span></h1>
-                <div className="w-10 text-right"><span className="text-red-600 font-black italic">#{player?.number}</span></div>
+                <div className="w-10 text-right"><span className="text-red-600 font-black italic">#{player?.jersey_number}</span></div>
             </header>
 
             <main className="max-w-md mx-auto px-6 pt-24 space-y-10 relative z-10">
@@ -107,13 +109,26 @@ const PortalPlayerCard = () => {
                             
                             <div className="flex justify-between items-start">
                                 <span className="text-[10px] font-black tracking-widest bg-red-600 px-4 py-1.5 rounded-full shadow-lg shadow-red-900/40">OFFICIAL RECRUIT</span>
-                                <span className="text-4xl font-black italic tracking-tighter text-red-600/30 font-display">#{player?.number}</span>
+                                <span className="text-4xl font-black italic tracking-tighter text-red-600/30 font-display">#{player?.jersey_number || '00'}</span>
                             </div>
 
-                            <div className="space-y-4">
-                                <h2 className="text-5xl font-black tracking-tighter uppercase italic italic leading-none">{player?.name.split(' ')[0]}<br/><span className="text-red-600">{player?.name.split(' ')[1] || 'CHAMP'}</span></h2>
+                            <div className="absolute inset-0 flex items-end justify-center pointer-events-none overflow-hidden">
+                                {player?.photo_url && (
+                                    <img 
+                                        src={player.photo_url} 
+                                        className="h-full w-full object-contain object-bottom opacity-80 group-hover:scale-105 transition-transform duration-700" 
+                                        alt={player.name}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="space-y-4 relative z-10">
+                                <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none drop-shadow-2xl">
+                                    {player?.name?.split(' ')[0]}<br/>
+                                    <span className="text-red-600">{player?.name?.split(' ').slice(1).join(' ') || 'CHAMP'}</span>
+                                </h2>
                                 <div className="flex items-center gap-6 text-[10px] font-black text-zinc-500 tracking-widest uppercase italic">
-                                    <span>{player?.position || 'ROOKIE'}</span>
+                                    <span>{player?.position_name || 'ROOKIE'}</span>
                                     <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
                                     <span>{player?.category_name || 'U-15'}</span>
                                 </div>
@@ -126,7 +141,7 @@ const PortalPlayerCard = () => {
                 <section className="grid grid-cols-2 gap-4">
                     {[
                         { label: 'YARDAS TOTALES', val: totals.yards, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-                        { label: 'TOUCHDOWNS', val: totals.tds, icon: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z' },
+                        { label: 'TOUCHDOWNS', val: `${totals.tds} (${totals.td_off}+${totals.td_def})`, icon: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z' },
                         { label: 'TACKLEOS', val: totals.tackles, icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
                         { label: 'INT / SACKS', val: `${totals.ints}/${totals.sacks}`, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
                         { label: 'PUNTOS EXTRA', val: totals.extra, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },

@@ -65,7 +65,15 @@ const updatePaymentStatus = async (req, res) => {
     if (existing.length === 0) return res.status(404).json({ message: "Pago no encontrado" });
 
     // paid_at might be NOW() if not provided
-    const paidAtValue = status === 'paid' ? (paid_at || new Date()) : null;
+    // Ensure paid_at is in MySQL format if provided
+    let paidAtValue = null;
+    if (status === 'paid') {
+      if (paid_at) {
+        paidAtValue = new Date(paid_at).toISOString().slice(0, 19).replace('T', ' ');
+      } else {
+        paidAtValue = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      }
+    }
 
     await db.query(
       `UPDATE payments SET status = ?, payment_method = ?, paid_at = ?
@@ -75,7 +83,7 @@ const updatePaymentStatus = async (req, res) => {
 
     res.status(200).json({ message: "Pago actualizado correctamente" });
   } catch (error) {
-    console.error('[updatePaymentStatus]', error);
+    console.error('[updatePaymentStatus Error]', error);
     res.status(500).json({ message: "Error al actualizar pago", error: error.message });
   }
 };
