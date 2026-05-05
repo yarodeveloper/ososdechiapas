@@ -200,7 +200,7 @@ const Dashboard = () => {
              { label: 'Pagos', icon: 'table', link: '/admin/payments' },
              { label: 'Stats', icon: 'analytics', link: '/estadisticas' },
              { label: 'Avisos', icon: 'comment', link: '/admin/announcements' },
-             { label: 'Prospectos', icon: 'analytics', link: '/admin/leads', count: dashboardData.leadsCount }
+             { label: 'Prospectos', icon: 'target', link: '/admin/leads', count: dashboardData.leadsCount }
            ].map((item, i) => (
              <Link key={i} to={item.link} className="flex flex-col items-center gap-2.5 group active:scale-90 transition-all relative">
                 <div className="w-[70px] h-[70px] rounded-3xl flex items-center justify-center shadow-sm group-hover:border-red-500 transition-all border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>

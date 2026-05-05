@@ -192,7 +192,7 @@ const FeedComponent = () => {
 };
 
 const CaptureForm = () => {
-  const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', child_age: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -242,11 +242,18 @@ const CaptureForm = () => {
               className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-sm focus:border-red-600 outline-none placeholder:text-zinc-600"
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
-            <input
-              placeholder="Tu WhatsApp" required type="tel"
-              className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-sm focus:border-red-600 outline-none placeholder:text-zinc-600"
-              onChange={e => setFormData({ ...formData, phone: e.target.value })}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                placeholder="WhatsApp" required type="tel"
+                className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-sm focus:border-red-600 outline-none placeholder:text-zinc-600"
+                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+              />
+              <input
+                placeholder="Edad Jugador" required type="number"
+                className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-sm focus:border-red-600 outline-none placeholder:text-zinc-600"
+                onChange={e => setFormData({ ...formData, child_age: e.target.value })}
+              />
+            </div>
             <button
               disabled={loading}
               className="w-full border border-red-600/50 text-red-500 font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl active:bg-red-600 active:text-white transition-all transform active:scale-[0.98]"
