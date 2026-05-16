@@ -160,9 +160,9 @@ const MatchStatsCapture = () => {
                 style={{ backgroundColor: 'var(--bg-header)', borderColor: 'var(--border-main)' }}>
                 <div className="max-w-md mx-auto flex items-center justify-between">
                     <button onClick={() => navigate(-1)}
-                        className="w-10 h-10 flex items-center justify-center rounded-full"
-                        style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-dim)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 active:scale-95 transition-all">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
+                        Volver
                     </button>
                     <div className="text-center">
                         <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Planilla Digital</p>
