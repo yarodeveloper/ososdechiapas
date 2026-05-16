@@ -143,7 +143,7 @@ const AdminSettings = () => {
             desc: 'Añade fotos/reels al muro principal',
             icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm8 4a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4zm5-1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z', 
             action: () => setView('social'), 
-            color: 'text-pink-500' 
+            color: 'text-red-500' 
         },
         { 
             id: 'teams', 
@@ -223,7 +223,7 @@ const AdminSettings = () => {
                 
                 {view === 'menu' ? (
                     <div className="space-y-4 animate-fade">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6 italic px-2">Mantenimiento del Sistema</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 italic px-2" style={{ color: 'var(--text-dim)' }}>Mantenimiento del Sistema</p>
                         
                         {menuItems.map(item => (
                             <div 
@@ -245,34 +245,37 @@ const AdminSettings = () => {
                         ))}
 
                         <div className="pt-10 text-center">
-                            <p className="text-[8px] font-black text-zinc-800 uppercase tracking-[0.5em] italic italic">Club Osos v2.0</p>
+                            <p className="text-[8px] font-black uppercase tracking-[0.5em] italic italic" style={{ color: 'var(--text-muted)' }}>Club Osos v2.0</p>
                         </div>
                     </div>
                 ) : view === 'bank' ? (
                     <form onSubmit={handleSave} className="space-y-8 animate-fade">
-                        <section className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 space-y-6">
+                        <section className="border rounded-[2.5rem] p-8 space-y-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Banco</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Banco</label>
                                 <input 
-                                    className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold"
+                                    className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold"
+                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                     value={settings.bank_name || ''}
                                     onChange={e => setSettings({...settings, bank_name: e.target.value})}
                                     placeholder="Ej. BBVA"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Titular</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Titular</label>
                                 <input 
-                                    className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold"
+                                    className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold"
+                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                     value={settings.bank_holder || ''}
                                     onChange={e => setSettings({...settings, bank_holder: e.target.value})}
                                     placeholder="Ej. Club Osos de Chiapas AC"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">CLABE</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>CLABE</label>
                                 <input 
-                                    className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-lg font-mono tracking-widest focus:border-red-600 outline-none transition-all font-black text-red-600"
+                                    className="w-full border rounded-2xl py-4 px-5 text-lg font-mono tracking-widest focus:border-red-600 outline-none transition-all font-black text-red-600"
+                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
                                     value={settings.bank_clabe || ''}
                                     onChange={e => setSettings({...settings, bank_clabe: e.target.value})}
                                     placeholder="0000..."
@@ -298,13 +301,14 @@ const AdminSettings = () => {
                     </form>
                 ) : view === 'social' ? (
                     <div className="space-y-8 animate-fade">
-                        <section className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 space-y-6">
-                            <h2 className="text-base font-black italic uppercase tracking-widest text-zinc-400">Nuevo Highlight de Instagram</h2>
+                        <section className="border rounded-[2.5rem] p-8 space-y-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                            <h2 className="text-base font-black italic uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Nuevo Highlight de Instagram</h2>
                             <form onSubmit={addSocialPost} className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Enlace Oficial de IG</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Enlace Oficial de IG</label>
                                     <input 
-                                        className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-xs focus:border-pink-600 outline-none transition-all font-bold text-pink-500"
+                                        className="w-full border rounded-2xl py-4 px-5 text-xs focus:border-red-600 outline-none transition-all font-bold text-red-600"
+                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
                                         value={newSocialUrl}
                                         onChange={e => setNewSocialUrl(e.target.value)}
                                         placeholder="https://www.instagram.com/p/..."
@@ -314,7 +318,7 @@ const AdminSettings = () => {
                                 <button 
                                     type="submit"
                                     disabled={saving || !newSocialUrl}
-                                    className="w-full bg-pink-600 text-white py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-lg shadow-pink-900/40 active:scale-95 transition-all disabled:opacity-50"
+                                    className="w-full bg-red-600 text-white py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-lg shadow-red-900/40 active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {saving ? 'Analizando...' : 'Anexar al Muro'}
                                 </button>
@@ -329,12 +333,12 @@ const AdminSettings = () => {
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] px-2">Activos en el Portal</h2>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] px-2" style={{ color: 'var(--text-dim)' }}>Activos en el Portal</h2>
                             {socialPosts.map(post => (
-                                <div key={post.id} className="bg-zinc-950 border border-zinc-900 rounded-3xl p-5 flex items-center justify-between shadow-xl">
+                                <div key={post.id} className="border rounded-3xl p-5 flex items-center justify-between shadow-xl" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                                     <div className="overflow-hidden flex-1 mr-4">
-                                        <p className="text-[10px] font-black text-pink-600 uppercase tracking-widest truncate">{post.url}</p>
-                                        <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">
+                                        <p className="text-[10px] font-black text-red-600 uppercase tracking-widest truncate">{post.url}</p>
+                                        <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
                                             Añadido: {new Date(post.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
@@ -347,35 +351,37 @@ const AdminSettings = () => {
                                 </div>
                             ))}
                             {socialPosts.length === 0 && (
-                                <div className="text-center w-full py-10 bg-zinc-900/20 border-dashed border border-zinc-800 rounded-3xl">
-                                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] italic">No hay contenido de IG activo</p>
+                                <div className="text-center w-full py-10 border-dashed border rounded-3xl" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] italic" style={{ color: 'var(--text-dim)' }}>No hay contenido de IG activo</p>
                                 </div>
                             )}
                         </section>
                     </div>
                 ) : view === 'security' ? (
                     <form onSubmit={handlePasswordChange} className="space-y-8 animate-fade">
-                        <section className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 space-y-6">
-                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Actualiza tu acceso administrativo</p>
+                        <section className="border rounded-[2.5rem] p-8 space-y-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: 'var(--text-dim)' }}>Actualiza tu acceso administrativo</p>
                             
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nueva Contraseña</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Nueva Contraseña</label>
                                     <input 
                                         type="password"
                                         required
-                                        className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all text-white font-bold tracking-widest placeholder:text-zinc-800"
+                                        className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold tracking-widest"
+                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                         placeholder="••••••••"
                                         value={passwordData.newPassword}
                                         onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Confirmar Contraseña</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Confirmar Contraseña</label>
                                     <input 
                                         type="password"
                                         required
-                                        className="w-full bg-black border border-zinc-900 rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all text-white font-bold tracking-widest placeholder:text-zinc-800"
+                                        className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold tracking-widest"
+                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                         placeholder="••••••••"
                                         value={passwordData.confirmPassword}
                                         onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}

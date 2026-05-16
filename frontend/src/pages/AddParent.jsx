@@ -126,15 +126,15 @@ const AddParent = () => {
             />
           </div>
 
-          {/* ── Teléfono ────────────────────────────────────────────────── */}
+          {/* ── Teléfono (Contraseña) ────────────────────────────────────────────────── */}
           <div>
-            <label className={labelCls}>Número Celular (Opcional)</label>
+            <label className={labelCls}>Número Celular (Será su Contraseña)</label>
             <div className="relative">
               <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.27-.76a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92z"/>
               </svg>
               <input
-                type="tel" name="phone"
+                type="tel" name="phone" required
                 className={`${inputCls} pl-11`}
                 placeholder="961 000 0000"
                 value={formData.phone}
@@ -143,26 +143,7 @@ const AddParent = () => {
             </div>
           </div>
 
-          {/* ── Password ────────────────────────────────────────────────── */}
-          <div className="bg-[#130d0d] border border-[#2a1515]/60 rounded-2xl p-4 mt-2">
-            <div className="flex items-center gap-2 mb-3">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-              <span className="text-[8px] font-black uppercase tracking-widest text-red-600">Acceso a Plataforma</span>
-            </div>
-            <label className={labelCls}>Contraseña Temporal</label>
-            <input
-              type="text" name="password"
-              className={inputCls}
-              placeholder="Por defecto: osos2026"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
-            <p className="text-[9px] text-zinc-600 mt-2 italic font-medium">
-              El usuario podrá cambiar su contraseña al iniciar sesión por primera vez.
-            </p>
-          </div>
+
 
           {/* ── Submit Button ─────────────────────────────────────────────── */}
           <div className="pt-4">

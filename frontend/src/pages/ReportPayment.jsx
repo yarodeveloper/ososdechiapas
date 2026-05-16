@@ -37,9 +37,59 @@ const ReportPayment = () => {
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
         if (!selected) return;
-        setFile(selected);
+
+        // Mostrar un pequeño indicador de carga si lo deseas, o simplemente procesar
+        if (selected.type === 'application/pdf') {
+            setFile(selected);
+            setPreview(null);
+            return;
+        }
+
         const reader = new FileReader();
-        reader.onloadend = () => setPreview(reader.result);
+        reader.onloadend = () => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_SIZE = 1200; // Resolución máxima
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Comprimir a formato WebP moderno (75% calidad)
+                const dataUrl = canvas.toDataURL('image/webp', 0.75);
+                setPreview(dataUrl);
+
+                // Convertir de regreso a File
+                fetch(dataUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const compressedFile = new File([blob], "ticket_comprobante.webp", { type: 'image/webp' });
+                        setFile(compressedFile);
+                    });
+            };
+            img.onerror = () => {
+                // Si el navegador no soporta el formato original (ej. TIF), enviamos el archivo original como fallback
+                setFile(selected);
+                setPreview(reader.result);
+            };
+            img.src = reader.result;
+        };
         reader.readAsDataURL(selected);
     };
 
@@ -208,8 +258,13 @@ const ReportPayment = () => {
                                         </svg>
                                     </div>
                                     <p className="text-sm font-black uppercase tracking-tight text-center">Subir Foto de Ticket/Comprobante</p>
-                                    <p className="text-[10px] text-zinc-500 mt-2 font-bold uppercase tracking-widest">JPG, PNG o PDF (Máx. 5MB)</p>
+                                    <p className="text-[10px] text-zinc-500 mt-2 font-bold uppercase tracking-widest">JPG, PNG o WEBP (Auto-optimizado)</p>
                                 </>
+                            )}
+                            {file && file.type === 'application/pdf' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl">
+                                    <p className="text-white font-black text-sm uppercase">Documento PDF</p>
+                                </div>
                             )}
                             <input 
                                 ref={fileInputRef} 

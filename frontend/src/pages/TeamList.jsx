@@ -56,43 +56,43 @@ const TeamList = () => {
   const rivals = teams.filter(t => t.is_club_oso !== 1);
 
   return (
-    <div className="bg-[#0a0a0a] text-[#e5e5e5] font-outfit min-h-screen flex flex-col relative pb-32">
-      <header className="flex justify-between items-center px-6 py-8 border-b border-white/5 sticky top-0 bg-black/80 backdrop-blur-md z-50">
-        <button onClick={() => navigate('/admin/settings')} className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 hover:text-white transition-all">
+    <div className="font-outfit min-h-screen flex flex-col relative pb-32 transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
+      <header className="flex justify-between items-center px-6 py-8 border-b sticky top-0 backdrop-blur-md z-50 transition-colors" style={{ backgroundColor: 'var(--bg-header)', borderColor: 'var(--border-main)' }}>
+        <button onClick={() => navigate('/admin/settings')} className="w-10 h-10 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-dim)' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <span className="text-sm font-black uppercase italic tracking-tighter text-white">Gestión de Rivales</span>
+        <span className="text-sm font-black uppercase italic tracking-tighter" style={{ color: 'var(--text-main)' }}>Gestión de Rivales</span>
         <div className="w-10"></div>
       </header>
 
       <main className="px-6 py-10 max-w-md mx-auto w-full">
         <div className="mb-10">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2 italic">CONTROL DE RIVALES</p>
-          <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Mantenimiento<br/>de Equipos</h1>
+          <h1 className="text-2xl font-black tracking-tighter uppercase italic leading-none" style={{ color: 'var(--text-main)' }}>Mantenimiento<br/>de Equipos</h1>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-12">
-          <div className="bg-zinc-950 border border-zinc-900 rounded-[2rem] p-6 shadow-xl text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2">Total Rivales</p>
-            <p className="text-3xl font-black text-white italic tracking-tighter">{rivals.length}</p>
+          <div className="rounded-[2rem] p-6 shadow-xl text-center border-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+            <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Total Rivales</p>
+            <p className="text-xl font-black italic tracking-tighter" style={{ color: 'var(--text-main)' }}>{rivals.length}</p>
           </div>
-          <div className="bg-zinc-950 border border-zinc-900 rounded-[2rem] p-6 shadow-xl text-center">
-             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2">Sincronizados</p>
-             <p className="text-3xl font-black text-red-600 italic tracking-tighter">YES</p>
+          <div className="rounded-[2rem] p-6 shadow-xl text-center border-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+             <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Sincronizados</p>
+             <p className="text-xl font-black text-red-600 italic tracking-tighter">YES</p>
           </div>
         </div>
 
         <div className="space-y-4">
           {rivals.map((team) => (
-            <div key={team.id} className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-6 shadow-2xl">
+            <div key={team.id} className="rounded-[2.5rem] p-6 shadow-2xl border-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
               <div className="flex justify-between items-start">
                   <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 bg-black rounded-2xl border border-zinc-800 p-2 flex items-center justify-center overflow-hidden shrink-0">
-                      {team.logo_url ? <img src={team.logo_url} alt="Logo" className="w-full h-full object-contain" /> : <div className="text-[10px] text-center text-zinc-700 font-black">LOGO</div>}
+                    <div className="w-16 h-16 rounded-2xl border p-2 flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                      {team.logo_url ? <img src={team.logo_url} alt="Logo" className="w-full h-full object-contain" /> : <div className="text-[10px] text-center font-black" style={{ color: 'var(--text-dim)' }}>LOGO</div>}
                     </div>
                     <div className="flex-grow">
-                      <h3 className="text-lg font-black text-white tracking-tight leading-none mb-1 uppercase italic">{team.name}</h3>
-                      <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1">
+                      <h3 className="text-lg font-black tracking-tight leading-none mb-1 uppercase italic" style={{ color: 'var(--text-main)' }}>{team.name}</h3>
+                      <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: 'var(--text-dim)' }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                         {team.home_stadium || 'Estadio N/A'}
                       </p>
@@ -102,7 +102,8 @@ const TeamList = () => {
                   <div className="flex gap-2">
                     <button 
                         onClick={() => handleEdit(team)}
-                        className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-500 hover:text-white transition-colors border border-white/5 shadow-lg active:scale-95"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border shadow-lg active:scale-95"
+                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
                     >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
@@ -118,8 +119,8 @@ const TeamList = () => {
           ))}
           
           {rivals.length === 0 && (
-            <div className="text-center py-20 bg-zinc-950 border border-dashed border-zinc-900 rounded-[2.5rem]">
-               <p className="text-zinc-600 font-black uppercase text-xs tracking-widest italic">No hay rivales en la base de datos</p>
+            <div className="text-center py-20 border border-dashed rounded-[2.5rem]" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+               <p className="font-black uppercase text-xs tracking-widest italic" style={{ color: 'var(--text-dim)' }}>No hay rivales en la base de datos</p>
             </div>
           )}
         </div>
@@ -134,19 +135,19 @@ const TeamList = () => {
         </button>
       </div>
 
-      <nav className="fixed bottom-0 left-0 w-full bg-black/90 backdrop-blur-xl border-t border-white/5 z-50 rounded-t-[2.5rem] pb-8 pt-4">
+      <nav className="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-50 rounded-t-[2.5rem] pb-8 pt-4 transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--border-main)' }}>
          <div className="max-w-md mx-auto px-8 flex justify-between items-center">
-            <Link to="/players/list" className="flex flex-col items-center gap-2 opacity-60 hover:opacity-100 transition-all">
-               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-               <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Roster</span>
+            <Link to="/players/list" className="flex flex-col items-center gap-2 transition-all" style={{ color: 'var(--text-dim)' }}>
+               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+               <span className="text-[9px] font-black uppercase tracking-widest">Roster</span>
             </Link>
-            <button className="flex flex-col items-center gap-2 opacity-100">
-               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e30514" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-               <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Rivales</span>
+            <button className="flex flex-col items-center gap-2 text-red-600">
+               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+               <span className="text-[9px] font-black uppercase tracking-widest">Rivales</span>
             </button>
-            <Link to="/estadisticas" className="flex flex-col items-center gap-2 opacity-60 hover:opacity-100 transition-all">
-               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-               <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Stats</span>
+            <Link to="/estadisticas" className="flex flex-col items-center gap-2 transition-all" style={{ color: 'var(--text-dim)' }}>
+               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+               <span className="text-[9px] font-black uppercase tracking-widest">Stats</span>
             </Link>
          </div>
       </nav>

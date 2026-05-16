@@ -15,15 +15,14 @@ const createParent = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
     
-    if (!name || !email) {
-      return res.status(400).json({ message: 'Nombre y correo son requeridos' });
+    if (!name || !email || !phone) {
+      return res.status(400).json({ message: 'Nombre, correo y teléfono son requeridos' });
     }
 
     // Role is hardcoded to 'family' to match the rest of the codebase
     const role = 'family';
-    // Password hash should be handled here, but looking at seed it uses 'temp_password_hash'
-    // I'll use a placeholder or the provided password if encryption is not yet established in this project
-    const password_hash = password || 'osos2026'; 
+    // Password is set to the phone number
+    const password_hash = phone; 
 
     const [result] = await db.query(
       'INSERT INTO users (name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?)',

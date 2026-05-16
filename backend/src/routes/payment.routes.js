@@ -3,6 +3,7 @@ const {
   getPayments, 
   getPaymentsByUser, 
   createPayment, 
+  createBulkPayments,
   updatePaymentStatus, 
   deletePayment,
   reportPayment
@@ -14,6 +15,7 @@ const router = express.Router();
 router.get('/',           getPayments);
 router.get('/user/:userId', getPaymentsByUser);
 router.post('/',          createPayment);
+router.post('/bulk',      createBulkPayments);
 router.post('/:id/report', (req, res, next) => {
   upload.single('receipt')(req, res, (err) => {
     if (err) {

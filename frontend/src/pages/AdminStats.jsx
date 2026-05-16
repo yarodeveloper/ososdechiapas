@@ -2,6 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SvgIcon from '../components/SvgIcon';
 
+// Position → phase detection
+const PHASES = {
+    offense: ['quarterback', 'running back', 'wide receiver', 'tight end', 'offensive line', 'qb', 'rb', 'wr', 'te', 'ol'],
+    defense: ['linebacker', 'cornerback', 'safety', 'defensive line', 'lb', 'cb', 'dl', 'defensive back', 'db'],
+    special: ['kicker', 'punter', 'kick', 'punt', 'especiales'],
+};
+const getPhases = (player) => {
+    const raw = (player.display_positions || player.position_name || '').toLowerCase();
+    if (!raw) return { offense: true, defense: true, special: true };
+    const p = { offense: false, defense: false, special: false };
+    Object.entries(PHASES).forEach(([phase, kws]) => { if (kws.some(k => raw.includes(k))) p[phase] = true; });
+    if (!p.offense && !p.defense && !p.special) return { offense: true, defense: true, special: true };
+    return p;
+};
+
 const AdminStats = () => {
     const { id: matchId } = useParams();
     const navigate = useNavigate();
@@ -213,9 +228,18 @@ const AdminStats = () => {
                                         <div className="w-full h-full flex items-center justify-center font-bold text-xs" style={{ color: 'var(--text-muted)' }}>{player.name[0]}</div>
                                     )}
                                 </div>
-                                <div className="flex-grow">
+                                <div className="flex-grow min-w-0">
                                     <h3 className="font-black text-sm uppercase tracking-wide truncate" style={{ color: 'var(--text-main)' }}>{player.name}</h3>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--primary)' }}>#{player.jersey_number || '00'} • {player.position_name?.split('(')[1]?.replace(')','') || 'JDR'}</p>
+                                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>#{player.jersey_number || '00'}</span>
+                                        {(player.display_positions || player.position_name || '').split(',').filter(Boolean).slice(0,3).map((pos, i) => {
+                                            const pl = pos.toLowerCase().trim();
+                                            let c = 'var(--primary)';
+                                            if (PHASES.defense.some(k => pl.includes(k))) c = '#3b82f6';
+                                            else if (PHASES.special.some(k => pl.includes(k))) c = '#f59e0b';
+                                            return <span key={i} className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md" style={{ backgroundColor: `${c}18`, color: c, border: `1px solid ${c}30` }}>{pos.replace(/\s*\([^)]*\)/,'').trim()}</span>;
+                                        })}
+                                    </div>
                                 </div>
                                 <button 
                                     onClick={() => handleStatChange(player.id, 'is_mvp', !stats[player.id]?.is_mvp)}
@@ -230,68 +254,77 @@ const AdminStats = () => {
                                 </button>
                             </div>
 
-                            <div className="space-y-6">
-                                {/* OFENSIVA */}
-                                <div className="space-y-4 p-5 rounded-3xl border" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
-                                     <div className="flex items-center gap-2 border-b pb-3 mb-2" style={{ borderColor: 'var(--border-main)' }}>
-                                        <div className="w-1.5 h-3 bg-[var(--primary)] rounded-full"></div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-main)' }}>Ataque (Yardas)</span>
-                                     </div>
-                                     <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                                        {[
-                                            { id: 'yards_passing', label: 'Pass Yds (QB)', delta: 5 },
-                                            { id: 'yards_rushing', label: 'Rush Yds (Car)', delta: 5 },
-                                            { id: 'yards_receiving', label: 'Rec Yds (WR)', delta: 5 }
-                                        ].map(f => (
-                                            <div key={f.id} className="flex flex-col gap-2">
-                                                <span className="text-[9px] font-black uppercase tracking-tighter truncate" style={{ color: 'var(--text-dim)' }}>{f.label}</span>
-                                                <div className="flex items-center bg-zinc-950/80 rounded-xl border p-1" style={{ borderColor: 'var(--border-main)' }}>
-                                                    <button onClick={() => decrement(player.id, f.id, f.delta)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 active:scale-90 transition-transform font-black text-sm">-</button>
-                                                    <input 
-                                                        type="number" 
-                                                        value={stats[player.id]?.[f.id] || 0} 
-                                                        onChange={e => handleStatChange(player.id, f.id, e.target.value)} 
-                                                        className="w-10 bg-transparent text-center text-xs font-black outline-none text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                                    />
-                                                    <button onClick={() => increment(player.id, f.id, f.delta)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-red-600 text-white active:scale-90 transition-transform font-black text-sm">+</button>
+                            {(() => {
+                                const ph = getPhases(player);
+                                const StepField = ({ pid, fid, label, delta = 1, active, color, btnColor }) => (
+                                    <div className="flex flex-col gap-2" style={{ opacity: active ? 1 : 0.45 }}>
+                                        <span className="text-[9px] font-black uppercase tracking-tighter truncate"
+                                            style={{ color: active ? color : 'var(--text-dim)' }}>{label}</span>
+                                        <div className="flex items-center bg-zinc-950/80 rounded-xl border p-1"
+                                            style={{ borderColor: active ? `${color}50` : 'var(--border-main)', boxShadow: active && (stats[pid]?.[fid] || 0) > 0 ? `0 0 0 2px ${color}20` : 'none' }}>
+                                            <button onClick={() => decrement(pid, fid, delta)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 active:scale-90 transition-transform font-black text-sm">-</button>
+                                            <input type="number" value={stats[pid]?.[fid] || 0}
+                                                onChange={e => handleStatChange(pid, fid, e.target.value)}
+                                                className="w-10 bg-transparent text-center text-xs font-black outline-none text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                            <button onClick={() => increment(pid, fid, delta)}
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center text-white active:scale-90 transition-transform font-black text-sm"
+                                                style={{ backgroundColor: btnColor }}>+</button>
+                                        </div>
+                                    </div>
+                                );
+                                return (
+                                    <div className="space-y-4">
+                                        {/* OFENSIVA */}
+                                        <div className="p-4 rounded-2xl transition-all"
+                                            style={{ backgroundColor: ph.offense ? 'rgba(220,38,38,0.05)' : 'var(--bg-main)', border: ph.offense ? '1px solid rgba(220,38,38,0.25)' : '1px solid var(--border-main)' }}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-3 rounded-full" style={{ backgroundColor: 'var(--primary)', opacity: ph.offense ? 1 : 0.3 }} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: ph.offense ? 'var(--primary)' : 'var(--text-muted)', opacity: ph.offense ? 1 : 0.5 }}>Ataque (Yardas)</span>
                                                 </div>
+                                                {ph.offense && <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(220,38,38,0.15)', color: 'var(--primary)', border: '1px solid rgba(220,38,38,0.3)' }}>Tu zona ★</span>}
                                             </div>
-                                        ))}
-                                     </div>
-                                </div>
-
-                                {/* DEFENSIVA / OTROS */}
-                                <div className="space-y-4 p-5 rounded-3xl border" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
-                                     <div className="flex items-center gap-2 border-b pb-3 mb-2" style={{ borderColor: 'var(--border-main)' }}>
-                                        <div className="w-1.5 h-3 bg-blue-600 rounded-full"></div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-main)' }}>Defensa / Puntos</span>
-                                     </div>
-                                     <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                                        {[
-                                            { id: 'td_offense', label: 'TD-OF (Ataque)' },
-                                            { id: 'td_defense', label: 'TD-DF (Defensa)' },
-                                            { id: 'tackles', label: 'TCK (Tackles)' },
-                                            { id: 'interceptions', label: 'INT (Intercep)' },
-                                            { id: 'sacks', label: 'Sacks (Captura)' },
-                                            { id: 'points_extra', label: 'Ext (Extra)' }
-                                        ].map(f => (
-                                            <div key={f.id} className="flex flex-col gap-2">
-                                                <span className="text-[9px] font-black uppercase tracking-tighter truncate" style={{ color: 'var(--text-dim)' }}>{f.label}</span>
-                                                <div className="flex items-center bg-zinc-950/80 rounded-xl border p-1" style={{ borderColor: 'var(--border-main)' }}>
-                                                    <button onClick={() => decrement(player.id, f.id)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 active:scale-90 transition-transform font-black text-sm">-</button>
-                                                    <input 
-                                                        type="number" 
-                                                        value={stats[player.id]?.[f.id] || 0} 
-                                                        onChange={e => handleStatChange(player.id, f.id, e.target.value)} 
-                                                        className="w-10 bg-transparent text-center text-xs font-black outline-none text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                                    />
-                                                    <button onClick={() => increment(player.id, f.id)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-600 text-white active:scale-90 transition-transform font-black text-sm">+</button>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+                                                <StepField pid={player.id} fid="yards_passing" label="Pass Yds (QB)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
+                                                <StepField pid={player.id} fid="yards_rushing" label="Rush Yds (Car)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
+                                                <StepField pid={player.id} fid="yards_receiving" label="Rec Yds (WR)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
+                                                <StepField pid={player.id} fid="td_offense" label="TD-OF (Ataque)" active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
+                                            </div>
+                                        </div>
+                                        {/* DEFENSIVA */}
+                                        <div className="p-4 rounded-2xl transition-all"
+                                            style={{ backgroundColor: ph.defense ? 'rgba(59,130,246,0.05)' : 'var(--bg-main)', border: ph.defense ? '1px solid rgba(59,130,246,0.25)' : '1px solid var(--border-main)' }}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-3 rounded-full bg-blue-500" style={{ opacity: ph.defense ? 1 : 0.3 }} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: ph.defense ? '#3b82f6' : 'var(--text-muted)', opacity: ph.defense ? 1 : 0.5 }}>Defensa</span>
                                                 </div>
+                                                {ph.defense && <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>Tu zona ★</span>}
                                             </div>
-                                        ))}
-                                     </div>
-                                </div>
-                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+                                                <StepField pid={player.id} fid="td_defense" label="TD-DF (Defensa)" active={ph.defense} color="#3b82f6" btnColor="#2563eb" />
+                                                <StepField pid={player.id} fid="tackles" label="TCK (Tackles)" active={ph.defense} color="#3b82f6" btnColor="#2563eb" />
+                                                <StepField pid={player.id} fid="interceptions" label="INT (Intercep)" active={ph.defense} color="#3b82f6" btnColor="#2563eb" />
+                                                <StepField pid={player.id} fid="sacks" label="Sacks (Captura)" active={ph.defense} color="#3b82f6" btnColor="#2563eb" />
+                                            </div>
+                                        </div>
+                                        {/* ESPECIALES */}
+                                        <div className="p-4 rounded-2xl transition-all"
+                                            style={{ backgroundColor: ph.special ? 'rgba(245,158,11,0.05)' : 'var(--bg-main)', border: ph.special ? '1px solid rgba(245,158,11,0.25)' : '1px solid var(--border-main)' }}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-3 rounded-full bg-amber-500" style={{ opacity: ph.special ? 1 : 0.3 }} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: ph.special ? '#f59e0b' : 'var(--text-muted)', opacity: ph.special ? 1 : 0.5 }}>Equipos Especiales</span>
+                                                </div>
+                                                {ph.special && <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>Tu zona ★</span>}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+                                                <StepField pid={player.id} fid="points_extra" label="Ext (Puntos Extra)" active={ph.special} color="#f59e0b" btnColor="#d97706" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     ))}
 

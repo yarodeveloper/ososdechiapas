@@ -26,6 +26,12 @@ const getLeaderboard = async (req, res) => {
         const [rows] = await db.query(`
             SELECT 
                 p.id, p.name, p.photo_url, pos.name as position_name,
+                (
+                  SELECT GROUP_CONCAT(cp.name SEPARATOR ', ')
+                  FROM player_positions pp
+                  JOIN catalogs_positions cp ON pp.position_id = cp.id
+                  WHERE pp.player_id = p.id
+                ) as position_names_list,
                 SUM(s.touchdowns) as total_touchdowns,
                 SUM(s.td_offense) as total_td_offense,
                 SUM(s.td_defense) as total_td_defense,
@@ -54,6 +60,12 @@ const getGlobalMvps = async (req, res) => {
         const [rows] = await db.query(`
             SELECT 
                 p.id, p.name, p.photo_url, pos.name as position_name, c.name as category_name,
+                (
+                  SELECT GROUP_CONCAT(cp.name SEPARATOR ', ')
+                  FROM player_positions pp
+                  JOIN catalogs_positions cp ON pp.position_id = cp.id
+                  WHERE pp.player_id = p.id
+                ) as position_names_list,
                 (SELECT COUNT(*) FROM player_stats WHERE player_id = p.id AND is_mvp = 1) as mvp_count
             FROM players p
             JOIN (
@@ -185,15 +197,38 @@ const getPlayerResume = async (req, res) => {
     try {
         const { player_id } = req.params;
         const [player] = await db.query(`
-            SELECT p.*, c.name as category_name, 
+            SELECT p.*, 
+                   c.name as category_name, 
+                   pos.name as position_name,
+                   bt.name as blood_type_name,
+                   (
+                     SELECT GROUP_CONCAT(cp.name SEPARATOR ', ')
+                     FROM player_positions pp
+                     JOIN catalogs_positions cp ON pp.position_id = cp.id
+                     WHERE pp.player_id = p.id
+                   ) as display_positions,
+                   (
+                     SELECT GROUP_CONCAT(pp2.position_id)
+                     FROM player_positions pp2
+                     WHERE pp2.player_id = p.id
+                   ) as position_ids_raw,
                    u.name as parent_name, u.email as parent_email, u.phone as parent_phone, u.password_hash as parent_password 
             FROM players p 
             LEFT JOIN categories c ON p.category_id = c.id 
+            LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
+            LEFT JOIN catalogs_blood_types bt ON p.blood_type_id = bt.id
             LEFT JOIN users u ON p.user_id = u.id
             WHERE p.id = ?
         `, [player_id]);
         if (player.length === 0) return res.status(404).json({ message: 'No existe' });
         
+        const playerData = player[0];
+        // Convert position IDs string to array of numbers (for the edit form)
+        playerData.position_ids = playerData.position_ids_raw 
+            ? playerData.position_ids_raw.split(',').map(Number) 
+            : [];
+        delete playerData.position_ids_raw;
+
         const [stats] = await db.query(`
             SELECT 
                 SUM(touchdowns) as total_tds, 
@@ -201,6 +236,8 @@ const getPlayerResume = async (req, res) => {
                 SUM(td_defense) as total_td_defense,
                 SUM(yards_passing+yards_rushing+yards_receiving) as total_yards,
                 SUM(tackles) as total_tackles,
+                SUM(interceptions) as total_interceptions,
+                SUM(sacks) as total_sacks,
                 (SELECT COUNT(*) FROM player_stats WHERE player_id = ? AND is_mvp = 1) as mvp_count
             FROM player_stats WHERE player_id = ?
         `, [player_id, player_id]);
@@ -211,7 +248,7 @@ const getPlayerResume = async (req, res) => {
             WHERE s.player_id = ? ORDER BY e.start_time DESC
         `, [player_id]);
 
-        res.json({ ...player[0], ...stats[0], history });
+        res.json({ ...playerData, ...stats[0], history });
     } catch (e) { res.status(500).json({ message: e.message }); }
 };
 

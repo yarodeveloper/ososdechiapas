@@ -119,7 +119,7 @@ const AdminCalendar = () => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                     </button>
                     <span className="text-xs font-black uppercase tracking-[0.3em] italic">Agenda <span className="text-red-600">Osos</span></span>
-                    <button onClick={() => { setShowForm(!showForm); if(showForm) setEditingEvent(null); }} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showForm ? 'bg-red-600 text-white rotate-45' : ''}`} style={{ backgroundColor: showForm ? '' : 'var(--bg-card)', color: showForm ? '' : 'var(--text-dim)' }}>
+                    <button onClick={() => { setShowForm(!showForm); if(showForm) setEditingEvent(null); }} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-xl shadow-red-900/40 ${showForm ? 'rotate-45' : ''}`}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
                     </button>
                 </div>

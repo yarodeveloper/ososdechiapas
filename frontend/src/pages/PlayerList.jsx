@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 // ─── Skeleton Card ────────────────────────────────────────────────────────────
-// ─── Skeleton Card ────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
   <div className="card p-4 flex items-center gap-4 animate-pulse shadow-sm">
     <div className="w-14 h-14 rounded-2xl flex-shrink-0" style={{ backgroundColor: 'var(--bg-main)' }} />
@@ -72,35 +71,36 @@ const PlayerCard = ({ player, index }) => {
               {player.category_name}
             </span>
           )}
-          {player.position_name && (
+          {player.display_positions && player.display_positions !== '—' && (
             <span className={`text-[9px] font-bold uppercase tracking-wider ${isBaja ? 'text-zinc-600' : 'text-red-600'}`}>
-              {player.position_name.replace(/\s*\([^)]*\)/, '')}
+              {player.display_positions}
             </span>
           )}
         </div>
       </div>
 
-      {/* Arrow / Badge */}
-      {isPaused && (
-        <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#f59e0b', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-          En Pausa
-        </span>
-      )}
-      {isBaja && (
-        <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#ef4444', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
-          Baja Definitiva
-        </span>
-      )}
-      {!isPaused && !isBaja && (
-        <svg
-          width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2.5"
-          className="group-hover:text-red-600 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-          style={{ color: 'var(--border-main)' }}
-        >
-          <path d="M9 18l6-6-6-6" />
-        </svg>
-      )}
+      <div className="flex items-center gap-3">
+        {isPaused && (
+          <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#f59e0b', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+            En Pausa
+          </span>
+        )}
+        {isBaja && (
+          <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded border shadow-sm" style={{ color: '#ef4444', backgroundColor: 'var(--bg-main)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+            Baja Definitiva
+          </span>
+        )}
+        {!isPaused && !isBaja && (
+          <svg
+            width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5"
+            className="group-hover:text-red-600 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+            style={{ color: 'var(--border-main)' }}
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        )}
+      </div>
     </div>
   );
 };
@@ -146,10 +146,8 @@ const PlayerList = () => {
 
     if (activeStatus !== 'all') {
       if (activeStatus === 'inactive') {
-        // Archivo solo muestra las Bajas Definitivas
         result = result.filter(p => p.status === 'baja');
       } else {
-        // Roster Activo muestra Activos, En Pausa y los que no tienen estatus (default active)
         result = result.filter(p => !p.status || p.status === 'active' || p.status === 'inactive');
       }
     }
@@ -197,7 +195,7 @@ const PlayerList = () => {
           </button>
         </div>
 
-        {/* Search bar (expandible) */}
+        {/* Search bar */}
         <div className={`overflow-hidden transition-all duration-300 ${showSearch ? 'max-h-16 opacity-100' : 'max-h-0 opacity-0'}`}>
           <div className="max-w-md mx-auto px-5 pb-3">
             <div className="relative">
@@ -233,7 +231,7 @@ const PlayerList = () => {
           <p className="text-xs font-medium" style={{ color: 'var(--text-dim)' }}>
             {loading ? 'Cargando...' : (
               activeStatus === 'active' 
-                ? `${filtered.length} guerrero${filtered.length !== 1 ? 's' : ''} en activo`
+                ? `${filtered.length} Oso${filtered.length !== 1 ? 's' : ''} en activo`
                 : `${filtered.length} jugador${filtered.length !== 1 ? 's' : ''} en archivo`
             )}
           </p>
@@ -329,7 +327,7 @@ const PlayerList = () => {
         </div>
       </main>
 
-      {/* ── FAB Add Player ────────────────────────────────────────────────── */}
+      {/* FAB Add Player */}
       <div className="fixed bottom-24 right-0 left-0 max-w-md mx-auto px-5 flex justify-end z-40 pointer-events-none">
         <Link
           to="/players/new"
@@ -341,7 +339,7 @@ const PlayerList = () => {
         </Link>
       </div>
 
-      {/* ── Bottom Nav ────────────────────────────────────────────────────── */}
+      {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--border-main)' }}>
         <div className="max-w-md mx-auto px-8 py-3 flex justify-between items-center">
           <Link to="/admin/dashboard" className="flex flex-col items-center gap-1 transition-colors" style={{ color: 'var(--text-dim)' }}>
@@ -367,12 +365,12 @@ const PlayerList = () => {
             <span className="text-[8px] font-bold uppercase tracking-widest">Agenda</span>
           </Link>
 
-          <button className="flex flex-col items-center gap-1 transition-colors" style={{ color: 'var(--text-dim)' }}>
+          <Link to="/estadisticas" className="flex flex-col items-center gap-1 transition-colors" style={{ color: 'var(--text-dim)' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 20V10M12 20V4M6 20v-6" />
             </svg>
-            <span className="text-[8px] font-bold uppercase tracking-widest">Stats</span>
-          </button>
+            <span className="text-[8px] font-bold uppercase tracking-widest">Estadísticas</span>
+          </Link>
         </div>
       </nav>
     </div>

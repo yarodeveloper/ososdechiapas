@@ -51,7 +51,7 @@ const PortalPlayerCard = () => {
         datasets: [
             {
                 label: 'Yardas por Partido',
-                data: [...stats].reverse().map(s => (parseInt(s.yards_passing)||0) + (parseInt(s.yards_rushing)||0)),
+                data: [...stats].reverse().map(s => (parseInt(s.yards_passing)||0) + (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
                 borderColor: '#dc2626',
                 backgroundColor: 'rgba(220, 38, 38, 0.15)',
                 borderWidth: 3,
@@ -81,7 +81,7 @@ const PortalPlayerCard = () => {
         },
         scales: { 
            x: { grid: { display: false }, ticks: { color: '#71717a', font: { size: 9, family: 'Inter', weight: 'bold' } } },
-           y: { grid: { color: '#27272a', borderDash: [5, 5] }, ticks: { color: '#71717a', font: { size: 10, family: 'Inter', weight: 'bold' }, padding: 10 }, beginAtZero: true }
+           y: { suggestedMax: 50, grid: { color: '#27272a', borderDash: [5, 5] }, ticks: { color: '#71717a', font: { size: 10, family: 'Inter', weight: 'bold' }, padding: 10 }, beginAtZero: true }
         }
     };
 
@@ -128,7 +128,6 @@ const PortalPlayerCard = () => {
                                     <span className="text-red-600">{player?.name?.split(' ').slice(1).join(' ') || 'CHAMP'}</span>
                                 </h2>
                                 <div className="flex items-center gap-6 text-[10px] font-black text-zinc-500 tracking-widest uppercase italic">
-                                    <span>{player?.position_name || 'ROOKIE'}</span>
                                     <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
                                     <span>{player?.category_name || 'U-15'}</span>
                                 </div>

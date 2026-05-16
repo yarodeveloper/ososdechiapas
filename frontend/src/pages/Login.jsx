@@ -32,12 +32,15 @@ const Login = () => {
 
       if (response.ok) {
         // DETECT FORCED PASSWORD RESET
+        // Removed as requested: no forced password change on first login
+        /*
         if (data.user.is_first_login) {
           setForcePasswordChange(true);
           setTempToken(data.token);
           setTempUser(data.user);
           return; // Do not navigate yet
         }
+        */
 
         // NORMAL LOGIN
         localStorage.setItem('token', data.token);

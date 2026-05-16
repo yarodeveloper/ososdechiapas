@@ -56,6 +56,48 @@ const createPayment = async (req, res) => {
   }
 };
 
+// ─── CREATE BULK PAYMENTS BY CATEGORY ─────────────────────────────────────────
+const createBulkPayments = async (req, res) => {
+  try {
+    const { category_id, amount, description, due_date } = req.body;
+
+    if (!amount || !description || !due_date) {
+      return res.status(400).json({ message: "Faltan campos obligatorios" });
+    }
+
+    let parentIdsQuery = '';
+    let params = [];
+
+    if (category_id === 'all' || !category_id) {
+      parentIdsQuery = `SELECT DISTINCT user_id FROM players WHERE user_id IS NOT NULL AND status != 'baja'`;
+    } else {
+      parentIdsQuery = `SELECT DISTINCT user_id FROM players WHERE category_id = ? AND user_id IS NOT NULL AND status != 'baja'`;
+      params.push(category_id);
+    }
+
+    const [parents] = await db.query(parentIdsQuery, params);
+
+    if (parents.length === 0) {
+      return res.status(404).json({ message: "No se encontraron tutores activos en esta categoría" });
+    }
+
+    let inserted = 0;
+    for (let parent of parents) {
+      await db.query(
+        `INSERT INTO payments (user_id, amount, description, due_date, status, category_id)
+         VALUES (?, ?, ?, ?, 'pending', ?)`,
+        [parent.user_id, amount, description, due_date, category_id === 'all' ? null : category_id]
+      );
+      inserted++;
+    }
+
+    res.status(201).json({ message: `Se generaron ${inserted} cobros exitosamente.` });
+  } catch (error) {
+    console.error('[createBulkPayments]', error);
+    res.status(500).json({ message: "Error al generar cobros masivos", error: error.message });
+  }
+};
+
 // ─── UPDATE PAYMENT STATUS (MARK AS PAID) ─────────────────────────────────────
 const updatePaymentStatus = async (req, res) => {
   try {
@@ -130,6 +172,7 @@ module.exports = {
   getPayments,
   getPaymentsByUser,
   createPayment,
+  createBulkPayments,
   updatePaymentStatus,
   deletePayment,
   reportPayment

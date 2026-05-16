@@ -36,10 +36,10 @@ const LiveTicker = ({ match }) => {
         </div>
       </div>
 
-      <div className="text-[9px] font-black text-zinc-500 uppercase flex items-center gap-1 group">
-        <span className="hidden md:block opacity-40">Ver Detalle</span>
-        <div className="w-5 h-5 rounded-full bg-zinc-900 flex items-center justify-center group-active:translate-x-1 transition-transform">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M9 18l6-6-6-6" /></svg>
+      <div className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1.5 group">
+        <span className="opacity-90 tracking-widest">Portal</span>
+        <div className="w-6 h-6 rounded-full bg-red-600/20 flex items-center justify-center group-active:translate-x-1 transition-transform">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M9 18l6-6-6-6" /></svg>
         </div>
       </div>
     </div>

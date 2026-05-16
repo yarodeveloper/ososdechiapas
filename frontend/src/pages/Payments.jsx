@@ -10,6 +10,11 @@ const Payments = () => {
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterStatus, setFilterStatus] = useState('all');
     
+    const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    const [filterMonth, setFilterMonth] = useState(currentMonthStr);
+    const [chargeMode, setChargeMode] = useState('individual');
+    const [selectedImage, setSelectedImage] = useState(null);
+    
     const [users, setUsers] = useState([]);
     const [formData, setFormData] = useState({
         user_id: '',
@@ -60,15 +65,21 @@ const Payments = () => {
     const handleNewCharge = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/payments', {
+            const url = chargeMode === 'bulk' ? '/api/payments/bulk' : '/api/payments';
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
             if (res.ok) {
+                const result = await res.json();
+                alert(result.message || 'Cargo generado');
                 setShowNewCharge(false);
                 fetchData();
                 setFormData({ ...formData, amount: '', description: '' });
+            } else {
+                const errData = await res.json();
+                alert(errData.message || 'Error al generar cargo');
             }
         } catch (err) {
             console.error(err);
@@ -115,11 +126,33 @@ const Payments = () => {
         }
     };
 
+    const uniqueMonths = [...new Set(payments.map(p => {
+        const d = new Date(p.due_date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }))].sort((a,b) => b.localeCompare(a));
+    if (!uniqueMonths.includes(currentMonthStr)) uniqueMonths.unshift(currentMonthStr);
+
     const filteredPayments = payments.filter(p => {
         const matchesCat = filterCategory === 'all' || p.category_id?.toString() === filterCategory;
         const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
-        return matchesCat && matchesStatus;
+        
+        let matchesMonth = false;
+        if (filterMonth === 'debtors') {
+            const isPast = new Date(p.due_date) < new Date();
+            matchesMonth = isPast && p.status !== 'paid' && p.status !== 'validating';
+        } else {
+            const due = new Date(p.due_date);
+            const pMonth = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}`;
+            matchesMonth = pMonth === filterMonth;
+        }
+
+        return matchesCat && matchesStatus && matchesMonth;
     });
+
+    const totalExpected = filteredPayments.reduce((acc, p) => acc + parseFloat(p.amount), 0);
+    const totalPaid = filteredPayments.filter(p => p.status === 'paid').reduce((acc, p) => acc + parseFloat(p.amount), 0);
+    const totalPending = totalExpected - totalPaid;
+    const collectionRate = totalExpected > 0 ? Math.round((totalPaid / totalExpected) * 100) : 0;
 
     const pendingValidations = payments.filter(p => p.status === 'validating');
 
@@ -135,8 +168,7 @@ const Payments = () => {
                     <span className="font-display font-black text-xs uppercase tracking-[0.3em] italic">Finanzas <span className="text-red-600">Osos</span></span>
                     <button 
                         onClick={() => setShowNewCharge(!showNewCharge)}
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${showNewCharge ? 'bg-red-600 text-white shadow-lg shadow-red-900/40 rotate-45' : ''}`}
-                        style={{ backgroundColor: showNewCharge ? '' : 'var(--bg-card)', color: showNewCharge ? '' : 'var(--text-dim)' }}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-lg shadow-red-900/40 ${showNewCharge ? 'rotate-45' : ''}`}
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
                     </button>
@@ -144,24 +176,62 @@ const Payments = () => {
             </header>
 
             <main className="max-w-md mx-auto px-6 pt-24 space-y-8">
+
+                {/* Modal for images */}
+                {selectedImage && (
+                    <div 
+                        className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade" 
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        <button 
+                            className="absolute top-6 right-6 text-white bg-red-600 rounded-full w-10 h-10 flex items-center justify-center shadow-2xl active:scale-95 transition-transform" 
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                        <img 
+                            src={selectedImage} 
+                            alt="Comprobante de Pago" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" 
+                            onClick={(e) => e.stopPropagation()} 
+                        />
+                        <p className="text-white text-[10px] font-black uppercase tracking-widest mt-6">Toca la imagen o la X para cerrar</p>
+                    </div>
+                )}
                 
                 {/* New Charge Form */}
                 {showNewCharge && (
                     <section className="card p-8 animate-slide-up shadow-2xl border-2" style={{ borderColor: 'var(--border-main)' }}>
+                        <div className="flex bg-zinc-900/10 p-1 rounded-2xl mb-8 border" style={{ borderColor: 'var(--border-main)' }}>
+                            <button 
+                                onClick={() => setChargeMode('individual')}
+                                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${chargeMode === 'individual' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500'}`}
+                            >
+                                Individual
+                            </button>
+                            <button 
+                                onClick={() => setChargeMode('bulk')}
+                                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${chargeMode === 'bulk' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500'}`}
+                            >
+                                Masivo
+                            </button>
+                        </div>
                         <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 leading-none" style={{ color: 'var(--text-main)' }}>
-                            Generar<br/><span className="text-red-600">Nuevo Cobro</span>
+                            {chargeMode === 'bulk' ? 'Cobro' : 'Generar'}<br/><span className="text-red-600">{chargeMode === 'bulk' ? 'Masivo' : 'Nuevo Cobro'}</span>
                         </h2>
                         <form onSubmit={handleNewCharge} className="space-y-6">
-                            <select 
-                                required 
-                                value={formData.user_id} 
-                                onChange={e => setFormData({ ...formData, user_id: e.target.value })}
-                                className="w-full border rounded-2xl py-4 px-5 text-[10px] font-black uppercase outline-none focus:border-red-600"
-                                style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
-                            >
-                                <option value="">SELECCIONAR PADRE/TUTOR</option>
-                                {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
-                            </select>
+                            {chargeMode === 'individual' && (
+                                <select 
+                                    required={chargeMode === 'individual'} 
+                                    value={formData.user_id} 
+                                    onChange={e => setFormData({ ...formData, user_id: e.target.value })}
+                                    className="w-full border rounded-2xl py-4 px-5 text-[10px] font-black uppercase outline-none focus:border-red-600"
+                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
+                                >
+                                    <option value="">SELECCIONAR PADRE/TUTOR</option>
+                                    {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+                                </select>
+                            )}
 
                             <input 
                                 required 
@@ -195,12 +265,14 @@ const Payments = () => {
                             </div>
 
                             <select 
+                                required={chargeMode === 'bulk'}
                                 value={formData.category_id} 
                                 onChange={e => setFormData({ ...formData, category_id: e.target.value })}
                                 className="w-full border rounded-2xl py-4 px-5 text-[10px] font-black uppercase outline-none focus:border-red-600"
                                 style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
                             >
-                                <option value="">APLICA A CATEGORÍA (OPCIONAL)</option>
+                                <option value="">{chargeMode === 'bulk' ? 'SELECCIONA CATEGORÍA' : 'APLICA A CATEGORÍA (OPCIONAL)'}</option>
+                                {chargeMode === 'bulk' && <option value="all">⚡ TODAS LAS CATEGORÍAS</option>}
                                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
 
@@ -228,43 +300,57 @@ const Payments = () => {
                 {/* Stats Summary */}
                 <section className="grid grid-cols-2 gap-3">
                     <div className="card p-5 rounded-[2rem] shadow-xl border-2" style={{ borderColor: 'var(--border-main)' }}>
-                        <div className="flex items-center gap-2 mb-2">
-                             <div className="w-1.5 h-1.5 rounded-full bg-red-600 shadow-[0_0_8px_red]"></div>
-                             <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>PENDIENTE</p>
-                        </div>
-                        <p className="text-2xl font-display font-black italic tracking-tighter leading-none" style={{ color: 'var(--text-main)' }}>$ {payments.filter(p => p.status !== 'paid').reduce((acc, p) => acc + parseFloat(p.amount), 0).toLocaleString()}</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-green-500 mb-1">Ingreso Real</p>
+                        <p className="text-2xl font-display font-black italic tracking-tighter text-green-500 leading-none mb-2">$ {totalPaid.toLocaleString()}</p>
+                        <p className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>DE $ {totalExpected.toLocaleString()}</p>
                     </div>
-                    <div className="p-5 rounded-[2rem] shadow-xl border-2" style={{ backgroundColor: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
-                        <div className="flex items-center gap-2 mb-2">
-                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_green]"></div>
-                             <p className="text-[8px] font-black uppercase tracking-widest text-green-600">COBRADO</p>
-                        </div>
-                        <p className="text-2xl font-display font-black italic tracking-tighter text-green-500 leading-none">$ {payments.filter(p => p.status === 'paid').reduce((acc, p) => acc + parseFloat(p.amount), 0).toLocaleString()}</p>
+                    <div className="p-5 rounded-[2rem] shadow-xl border-2" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-amber-500 mb-1">Por Cobrar</p>
+                        <p className="text-2xl font-display font-black italic tracking-tighter text-amber-500 leading-none mb-2">$ {totalPending.toLocaleString()}</p>
+                        <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden mt-1"><div className="h-full bg-green-500" style={{ width: `${collectionRate}%` }}></div></div>
+                        <p className="text-[8px] font-bold uppercase tracking-widest mt-2 text-right" style={{ color: 'var(--text-dim)' }}>{collectionRate}% RECAUDADO</p>
                     </div>
                 </section>
 
                 {/* Filters */}
-                <section className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                <section className="flex flex-col gap-2">
                     <select 
-                        value={filterCategory} 
-                        onChange={e => setFilterCategory(e.target.value)}
-                        className="border rounded-xl px-4 py-3 text-[9px] font-black uppercase tracking-widest outline-none focus:border-red-600 shrink-0"
-                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
+                        value={filterMonth} 
+                        onChange={e => setFilterMonth(e.target.value)}
+                        className="w-full border rounded-xl px-4 py-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-red-600 shadow-xl"
+                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                     >
-                        <option value="all">TODAS LAS CATEGORÍAS</option>
-                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        {uniqueMonths.map(m => {
+                            const [year, month] = m.split('-');
+                            const date = new Date(year, parseInt(month) - 1, 1);
+                            const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+                            return <option key={m} value={m}>{monthName} {year}</option>;
+                        })}
+                        <option value="debtors">🚨 MOROSOS (DEUDAS ANTERIORES)</option>
                     </select>
-                    <select 
-                        value={filterStatus} 
-                        onChange={e => setFilterStatus(e.target.value)}
-                        className="border rounded-xl px-4 py-4 text-[9px] font-black uppercase tracking-widest outline-none focus:border-red-600 shrink-0"
-                        style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
-                    >
-                        <option value="all">TODOS LOS ESTATUS</option>
-                        <option value="validating">POR VALIDAR ⚠️</option>
-                        <option value="pending">SOLO PENDIENTES</option>
-                        <option value="paid">SOLO PAGADOS</option>
-                    </select>
+
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                        <select 
+                            value={filterCategory} 
+                            onChange={e => setFilterCategory(e.target.value)}
+                            className="border rounded-xl px-4 py-3 text-[9px] font-black uppercase tracking-widest outline-none focus:border-red-600 shrink-0"
+                            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
+                        >
+                            <option value="all">TODAS LAS CATEGORÍAS</option>
+                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <select 
+                            value={filterStatus} 
+                            onChange={e => setFilterStatus(e.target.value)}
+                            className="border rounded-xl px-4 py-4 text-[9px] font-black uppercase tracking-widest outline-none focus:border-red-600 shrink-0"
+                            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
+                        >
+                            <option value="all">TODOS LOS ESTATUS</option>
+                            <option value="validating">POR VALIDAR ⚠️</option>
+                            <option value="pending">SOLO PENDIENTES</option>
+                            <option value="paid">SOLO PAGADOS</option>
+                        </select>
+                    </div>
                 </section>
 
                 {/* List */}
@@ -279,7 +365,7 @@ const Payments = () => {
                                 </div>
                                 <div className="text-right">
                                     <span className={`text-[8px] font-black px-3 py-1 rounded-full uppercase border mb-2 inline-block ${getStatusStyle(p.status)}`}>
-                                        {p.status === 'validating' ? 'Por Validar' : p.status}
+                                        {p.status === 'paid' ? 'Pagado' : p.status === 'pending' ? 'Pendiente' : p.status === 'validating' ? 'Por Validar' : p.status === 'late' ? 'Vencido' : p.status}
                                     </span>
                                     <p className="text-2xl font-display font-black italic tracking-tighter leading-none" style={{ color: 'var(--text-main)' }}>$ {parseFloat(p.amount).toLocaleString()}</p>
                                 </div>
@@ -291,12 +377,23 @@ const Payments = () => {
                                     <div className="border rounded-2xl p-4 flex items-center justify-between" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
                                         <div className="flex items-center gap-3">
                                             {/* Receipt Thumbnail */}
-                                            <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="w-12 h-16 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden flex-shrink-0 group/img relative shadow-inner">
-                                                <img src={p.receipt_url} alt="Ticket" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform" />
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                                                </div>
-                                            </a>
+                                            {p.receipt_url && p.receipt_url.toLowerCase().endsWith('.pdf') ? (
+                                                <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="w-12 h-16 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden flex-shrink-0 group/img relative shadow-inner">
+                                                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-800">
+                                                        <span className="text-[8px] font-black text-white mt-1">PDF</span>
+                                                    </div>
+                                                </a>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => setSelectedImage(p.receipt_url)} 
+                                                    className="w-12 h-16 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden flex-shrink-0 group/img relative shadow-inner"
+                                                >
+                                                    <img src={p.receipt_url} alt="Ticket" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform" />
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                                    </div>
+                                                </button>
+                                            )}
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Referencia: {p.payment_method || 'SPEI'}</span>
                                                 <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Validar Comprobante</span>

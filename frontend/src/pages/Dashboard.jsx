@@ -71,10 +71,46 @@ const Dashboard = () => {
     return `${day} ${hr} HRS`;
   };
 
+  const [editScores, setEditScores] = useState({});
+
+  const openScoreEditor = (match) => {
+    setEditScores(prev => ({
+      ...prev,
+      [match.id]: { osos: match.score_osos ?? 0, rival: match.score_rival ?? 0, editing: true, saving: false }
+    }));
+  };
+
+  const changeScore = (matchId, team, delta) => {
+    setEditScores(prev => ({
+      ...prev,
+      [matchId]: { ...prev[matchId], [team]: Math.max(0, (prev[matchId]?.[team] ?? 0) + delta) }
+    }));
+  };
+
+  const saveScore = async (matchId) => {
+    const s = editScores[matchId];
+    setEditScores(prev => ({ ...prev, [matchId]: { ...s, saving: true } }));
+    try {
+      await fetch(`/api/calendar/${matchId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score_osos: s.osos, score_rival: s.rival })
+      });
+      setDashboardData(prev => ({
+        ...prev,
+        lastResults: prev.lastResults.map(m => m.id === matchId ? { ...m, score_osos: s.osos, score_rival: s.rival } : m)
+      }));
+      setEditScores(prev => ({ ...prev, [matchId]: { ...s, editing: false, saving: false } }));
+    } catch {
+      setEditScores(prev => ({ ...prev, [matchId]: { ...s, saving: false } }));
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/');
   }
+
 
   return (
     <div className="min-h-screen font-body pb-32 overflow-x-hidden transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
@@ -219,47 +255,113 @@ const Dashboard = () => {
         {/* Results Strip (Touch Friendly) */}
         <section className="pt-2">
            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] italic italic" style={{ color: 'var(--text-dim)' }}>Resultados Recientes</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] italic" style={{ color: 'var(--text-dim)' }}>Resultados Recientes</h3>
               <div className="w-8 h-px" style={{ backgroundColor: 'var(--border-main)' }}></div>
            </div>
            <div className="flex gap-4 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar touch-pan-x">
-              {lastResults?.length > 0 ? lastResults.map(match => (
-                 <div key={match.id} className="card min-w-[240px] p-6 relative overflow-hidden group/card active:scale-[0.98] transition-transform">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                       <SvgIcon src="/icons/trophy-svgrepo-com.svg" className="w-12 h-12 text-white" />
-                    </div>
-                    
-                    <div className="flex justify-between items-start mb-4">
-                       <span className="text-[8px] font-black uppercase tracking-widest px-2 py-1 bg-red-600 text-white rounded-md">{match.category_name}</span>
-                       <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>{new Date(match.match_date).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}</span>
-                    </div>
+              {lastResults?.length > 0 ? lastResults.map(match => {
+                 const es = editScores[match.id];
+                 const isEditing = es?.editing;
+                 const isSaving = es?.saving;
+                 const displayOsos = isEditing ? es.osos : (match.score_osos ?? '—');
+                 const displayRival = isEditing ? es.rival : (match.score_rival ?? '—');
+                 const hasScore = match.score_osos != null;
 
-                    <div className="space-y-4 relative z-10">
-                        <div className="flex justify-between items-end">
-                           <div className="flex flex-col">
-                              <span className="text-xs font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-dim)' }}>Osos</span>
-                              <span className="text-3xl font-display font-black italic leading-none" style={{ color: 'var(--text-main)' }}>{match.score_osos || 0}</span>
-                           </div>
-                           <div className="text-[10px] font-black opacity-20 pb-1">VS</div>
-                           <div className="flex flex-col items-end">
-                              <span className="text-xs font-black uppercase tracking-widest leading-none truncate max-w-[80px]" style={{ color: 'var(--text-dim)' }}>{(match.rival_name || 'RIVAL').split(' ')[0]}</span>
-                              <span className="text-3xl font-display font-black italic leading-none" style={{ color: 'var(--text-main)' }}>{match.score_rival || 0}</span>
-                           </div>
-                        </div>
-                       
-                       <Link 
-                          to={`/admin/matches/${match.id}/stats`}
-                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border hover:border-red-600 transition-colors group/btn shadow-sm"
-                          style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
-                       >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover/btn:text-red-500 transition-colors" style={{ color: 'var(--text-dim)' }}>
-                             <path d="M12 20V10M18 20V4M6 20v-6" />
-                          </svg>
-                          <span className={`${match.stats_count > 0 ? 'text-red-600' : ''} text-[9px] font-black uppercase tracking-widest group-hover/btn:text-red-600 transition-colors`} style={{ color: match.stats_count > 0 ? 'text-red-600' : 'var(--text-dim)' }}>{match.stats_count > 0 ? 'Editar Stats' : 'Registrar Stats'}</span>
-                       </Link>
+                 return (
+                    <div key={match.id} className="min-w-[260px] relative overflow-hidden rounded-[2rem] transition-all"
+                       style={{
+                          backgroundColor: 'var(--bg-card)',
+                          border: isEditing ? '2px solid var(--primary)' : '1px solid var(--border-main)',
+                          boxShadow: isEditing ? '0 0 0 4px rgba(220,38,38,0.1)' : 'none'
+                       }}>
+                       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                       </div>
+
+                       <div className="p-5 space-y-4 relative z-10">
+                          <div className="flex justify-between items-start">
+                             <span className="text-[8px] font-black uppercase tracking-widest px-2 py-1 bg-red-600 text-white rounded-md">{match.category_name}</span>
+                             <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
+                                {new Date(match.match_date).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}
+                             </span>
+                          </div>
+
+                          {!isEditing ? (
+                             <button className="w-full text-left group" onClick={() => openScoreEditor(match)}>
+                                <div className="flex justify-between items-end">
+                                   <div className="flex flex-col">
+                                      <span className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--text-dim)' }}>Osos</span>
+                                      <span className="text-4xl font-display font-black italic leading-none" style={{ color: 'var(--text-main)' }}>{displayOsos}</span>
+                                   </div>
+                                   <div className="flex flex-col items-center pb-1">
+                                      <span className="text-[9px] font-black opacity-20">VS</span>
+                                      {!hasScore && (
+                                         <span className="text-[7px] font-black uppercase tracking-widest mt-1 px-1.5 py-0.5 rounded-full animate-pulse"
+                                            style={{ backgroundColor: 'rgba(220,38,38,0.15)', color: 'var(--primary)' }}>
+                                            Sin marcador
+                                         </span>
+                                      )}
+                                   </div>
+                                   <div className="flex flex-col items-end">
+                                      <span className="text-[9px] font-black uppercase tracking-widest leading-none mb-1 truncate max-w-[80px]" style={{ color: 'var(--text-dim)' }}>
+                                         {(match.rival_name || 'RIVAL').split(' ')[0]}
+                                      </span>
+                                      <span className="text-4xl font-display font-black italic leading-none" style={{ color: 'var(--text-main)' }}>{displayRival}</span>
+                                   </div>
+                                </div>
+                             </button>
+                          ) : (
+                             <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                   <span className="text-[9px] font-black uppercase tracking-widest w-14" style={{ color: 'var(--text-dim)' }}>Osos</span>
+                                   <div className="flex items-center gap-2">
+                                      <button onClick={() => changeScore(match.id, 'osos', -1)}
+                                         className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 font-black">-</button>
+                                      <span className="text-xl font-display font-black italic w-8 text-center">{es.osos}</span>
+                                      <button onClick={() => changeScore(match.id, 'osos', 1)}
+                                         className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-600 text-white font-black">+</button>
+                                   </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-[9px] font-black uppercase tracking-widest w-14 truncate" style={{ color: 'var(--text-dim)' }}>
+                                      {(match.rival_name || 'RIVAL').split(' ')[0]}
+                                   </span>
+                                   <div className="flex items-center gap-2">
+                                      <button onClick={() => changeScore(match.id, 'rival', -1)}
+                                         className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 font-black">-</button>
+                                      <span className="text-xl font-display font-black italic w-8 text-center">{es.rival}</span>
+                                      <button onClick={() => changeScore(match.id, 'rival', 1)}
+                                         className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-100 font-black">+</button>
+                                   </div>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                   <button onClick={() => setEditScores(prev => ({ ...prev, [match.id]: { ...es, editing: false } }))}
+                                      className="flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest border"
+                                      style={{ borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>
+                                      Cancelar
+                                   </button>
+                                   <button onClick={() => saveScore(match.id)} disabled={isSaving}
+                                      className="flex-[2] py-2 rounded-xl text-[8px] font-black uppercase tracking-widest bg-red-600 text-white flex items-center justify-center gap-1">
+                                      {isSaving ? '...' : 'Guardar'}
+                                   </button>
+                                </div>
+                             </div>
+                          )}
+                          
+                          <Link 
+                             to={`/admin/matches/${match.id}/stats`}
+                             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border hover:border-red-600 transition-colors group/btn shadow-sm"
+                             style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
+                          >
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover/btn:text-red-500 transition-colors" style={{ color: 'var(--text-dim)' }}>
+                                <path d="M12 20V10M18 20V4M6 20v-6" />
+                             </svg>
+                             <span className={`${match.stats_count > 0 ? 'text-red-600' : ''} text-[9px] font-black uppercase tracking-widest group-hover/btn:text-red-600 transition-colors`} style={{ color: match.stats_count > 0 ? 'text-red-600' : 'var(--text-dim)' }}>{match.stats_count > 0 ? 'Editar Stats' : 'Registrar Stats'}</span>
+                          </Link>
+                       </div>
                     </div>
-                 </div>
-              )) : (
+                 );
+              }) : (
                 <div className="text-center w-full py-8 text-xs font-black uppercase tracking-[0.2em] opacity-60 italic italic" style={{ color: 'var(--text-dim)' }}>Sin resultados históricos</div>
               )}
            </div>
@@ -277,11 +379,7 @@ const Dashboard = () => {
                <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/calendar' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Agenda</span>
             </Link>
-            <div className="relative -top-10">
-               <div className="w-16 h-16 bg-red-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-red-900/40 border-4 active:scale-[0.85] transition-transform" style={{ borderColor: 'var(--bg-main)' }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><path d="M12 5v14M5 12h14"/></svg>
-               </div>
-            </div>
+            {/* Add button removed as requested */}
             <Link to="/admin/announcements" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/announcements' ? 'text-red-600' : ''} active:scale-90 transition-all relative`} style={{ color: location.pathname === '/admin/announcements' ? '#dc2626' : 'var(--text-dim)' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/announcements' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full border-2" style={{ borderColor: 'var(--bg-main)' }}></span>
