@@ -30,7 +30,12 @@ const StatsCenter = () => {
              finally { setLoading(false); }
         };
         loadCatalogs();
-        fetch('/api/stats/leaderboard/global/mvps').then(res => res.json()).then(data => setGlobalMvps(data)).catch(()=>{});
+        fetch('/api/stats/leaderboard/global/mvps')
+            .then(res => res.json())
+            .then(data => {
+                if(Array.isArray(data)) setGlobalMvps(data);
+            })
+            .catch(()=>{});
     }, []);
 
     useEffect(() => {

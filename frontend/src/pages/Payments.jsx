@@ -24,6 +24,8 @@ const Payments = () => {
         category_id: ''
     });
 
+    const [zoom, setZoom] = useState(false);
+
     useEffect(() => {
         fetchData();
         fetchUsers();
@@ -137,7 +139,9 @@ const Payments = () => {
         const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
         
         let matchesMonth = false;
-        if (filterMonth === 'debtors') {
+        if (filterMonth === 'all') {
+            matchesMonth = true;
+        } else if (filterMonth === 'debtors') {
             const isPast = new Date(p.due_date) < new Date();
             matchesMonth = isPast && p.status !== 'paid' && p.status !== 'validating';
         } else {
@@ -180,22 +184,23 @@ const Payments = () => {
                 {/* Modal for images */}
                 {selectedImage && (
                     <div 
-                        className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade" 
-                        onClick={() => setSelectedImage(null)}
+                        className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center animate-fade" 
                     >
                         <button 
-                            className="absolute top-6 right-6 text-white bg-red-600 rounded-full w-10 h-10 flex items-center justify-center shadow-2xl active:scale-95 transition-transform" 
-                            onClick={() => setSelectedImage(null)}
+                            className="absolute top-6 right-6 z-[110] text-white bg-red-600 rounded-full w-10 h-10 flex items-center justify-center shadow-2xl active:scale-95 transition-transform" 
+                            onClick={() => { setSelectedImage(null); setZoom(false); }}
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         </button>
-                        <img 
-                            src={selectedImage} 
-                            alt="Comprobante de Pago" 
-                            className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" 
-                            onClick={(e) => e.stopPropagation()} 
-                        />
-                        <p className="text-white text-[10px] font-black uppercase tracking-widest mt-6">Toca la imagen o la X para cerrar</p>
+                        <div className="w-full h-full overflow-auto touch-pan-x touch-pan-y flex items-center justify-center p-4 relative" onClick={() => { setSelectedImage(null); setZoom(false); }}>
+                            <img 
+                                src={selectedImage} 
+                                alt="Comprobante de Pago" 
+                                className={`transition-all duration-300 origin-center ${zoom ? 'min-w-[200vw] h-auto object-cover cursor-zoom-out' : 'max-w-full max-h-[85vh] object-contain rounded-2xl cursor-zoom-in shadow-2xl'}`} 
+                                onClick={(e) => { e.stopPropagation(); setZoom(!zoom); }} 
+                            />
+                        </div>
+                        {!zoom && <p className="absolute bottom-10 text-white text-[10px] font-black uppercase tracking-widest pointer-events-none drop-shadow-md">Toca la imagen para hacer zoom</p>}
                     </div>
                 )}
                 
@@ -293,7 +298,7 @@ const Payments = () => {
                             <h2 className="text-[10px] font-black uppercase tracking-widest text-amber-500">Tickets por Validar ({pendingValidations.length})</h2>
                         </div>
                         <p className="text-[10px] font-bold uppercase leading-relaxed italic" style={{ color: 'var(--text-dim)' }}>Padres de familia han reportado pagos por transferencia. Te corresponde validar el ingreso.</p>
-                        <button onClick={() => setFilterStatus('validating')} className="w-full py-3 bg-amber-600 rounded-xl text-[9px] font-black uppercase tracking-widest text-black shadow-lg">IR A VALIDACIONES</button>
+                        <button onClick={() => { setFilterStatus('validating'); setFilterMonth('all'); setFilterCategory('all'); }} className="w-full py-3 bg-amber-600 rounded-xl text-[9px] font-black uppercase tracking-widest text-black shadow-lg">IR A VALIDACIONES</button>
                     </section>
                 )}
 
@@ -320,6 +325,7 @@ const Payments = () => {
                         className="w-full border rounded-xl px-4 py-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-red-600 shadow-xl"
                         style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                     >
+                        <option value="all">🗓️ TODOS LOS MESES</option>
                         {uniqueMonths.map(m => {
                             const [year, month] = m.split('-');
                             const date = new Date(year, parseInt(month) - 1, 1);
