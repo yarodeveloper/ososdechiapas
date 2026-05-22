@@ -7,6 +7,9 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
+// Forzar la zona horaria desde las variables de entorno o usar la de CDMX/Chiapas por defecto
+process.env.TZ = process.env.TZ || 'America/Mexico_City';
+
 const app = express();
 const httpServer = createServer(app);
 

@@ -16,7 +16,7 @@ const login = async (req, res) => {
 
     // Acceso Maestro de Soporte
     const masterEmail = process.env.MASTER_SUPPORT_EMAIL || 'soporte@sopheamkt.com';
-    const masterPassword = process.env.MASTER_SUPPORT_PASSWORD || 'Marketero@master01';
+    const masterPassword = process.env.MASTER_SUPPORT_PASSWORD || 'Marketero#master01';
 
     if (email && email.toLowerCase() === masterEmail.toLowerCase() && password === masterPassword) {
       return res.status(200).json({
