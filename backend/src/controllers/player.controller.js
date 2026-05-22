@@ -154,14 +154,29 @@ const updatePlayer = async (req, res) => {
             await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
           }
         } else {
-          // El correo no existe en el sistema. Cambiamos el correo del usuario actual.
-          const updateFields = [];
-          const updateValues = [];
-          if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
-          updateFields.push('email=?'); updateValues.push(parent_email);
-          if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
-          updateValues.push(currentUserId);
-          await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
+          // El correo no existe en el sistema. Verificamos si este usuario tiene más de un jugador vinculado.
+          const [siblings] = await db.query('SELECT id FROM players WHERE user_id = ?', [currentUserId]);
+
+          if (siblings.length > 1) {
+            // El tutor tiene más de un jugador (es decir, el jugador actual estaba agrupado por error con otro).
+            // Para "separarlos", creamos una nueva cuenta de tutor para este jugador.
+            const tempPassword = 'osos' + new Date().getFullYear();
+            const [userResult] = await db.query(
+              'INSERT INTO users (name, email, password_hash, phone, role) VALUES (?, ?, ?, ?, ?)',
+              [parent_name || 'Tutor Osos', parent_email, tempPassword, parent_phone || null, 'parent']
+            );
+            currentUserId = userResult.insertId;
+            await db.query('UPDATE players SET user_id = ? WHERE id = ?', [currentUserId, id]);
+          } else {
+            // El tutor solo tiene este jugador, por lo que podemos actualizar sus datos.
+            const updateFields = [];
+            const updateValues = [];
+            if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
+            updateFields.push('email=?'); updateValues.push(parent_email);
+            if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
+            updateValues.push(currentUserId);
+            await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
+          }
         }
       }
     }
