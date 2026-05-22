@@ -82,7 +82,7 @@ const AddPlayer = () => {
       // Backend devuelve { id, message } — usamos los datos del formulario para mostrar credenciales
       setSuccessData({
         email: formData.parent_email,
-        password: formData.parent_phone || 'clubosos123',
+        password: 'osos' + new Date().getFullYear(),
         playerId: result.id
       });
     } catch (err) {

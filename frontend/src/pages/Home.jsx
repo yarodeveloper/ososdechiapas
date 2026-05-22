@@ -271,15 +271,6 @@ const FooterComponent = () => (
   <footer className="py-24 px-6 bg-black border-t border-zinc-900 text-center pb-32">
     <div className="flex flex-col items-center gap-4 mb-10">
       <div className="font-display font-black text-3xl uppercase italic italic tracking-tighter">Osos Chiapas</div>
-      <div className="w-10 h-1 bg-red-600/30"></div>
-      <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.4em]">The Obsidian Elite • MDXXVI</p>
-    </div>
-
-    <div className="grid grid-cols-2 gap-y-6 gap-x-4 max-w-xs mx-auto text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-16">
-      <a href="#">Join the Pack</a>
-      <a href="#">Player Portal</a>
-      <a href="#">Schedules</a>
-      <a href="#">Legal Info</a>
     </div>
 
     <p className="text-zinc-800 text-[9px] font-bold">

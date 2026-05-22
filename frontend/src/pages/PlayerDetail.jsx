@@ -436,13 +436,28 @@ const PlayerDetail = () => {
                                     </span>
                                 </div>
                                 <div className="absolute top-6 right-6 flex flex-col items-center">
-                                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">NUM</span>
+                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">NUM</span>
                                     <span className="text-xl font-display font-black text-white italic">#{player?.jersey_number || '00'}</span>
                                 </div>
-                                <div className={`w-40 h-40 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-4 ${player?.status !== 'active' ? 'grayscale opacity-60' : ''}`}>
-                                    {player.photo_url ? <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-display font-black text-zinc-700">{initials}</div>}
+                                <div 
+                                    className={`relative w-44 h-44 rounded-[2rem] bg-zinc-900 border-2 border-zinc-800 shadow-2xl overflow-hidden mb-6 mt-6 shrink-0 aspect-square flex items-center justify-center ${player?.status !== 'active' ? 'grayscale opacity-60' : ''}`}
+                                    style={{ isolation: 'isolate' }}
+                                >
+                                    {player.photo_url ? (
+                                        <img 
+                                            src={player.photo_url} 
+                                            alt={player.name} 
+                                            className="w-full h-full object-cover rounded-[2rem]" 
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-4xl font-display font-black text-zinc-700 select-none">
+                                            {initials}
+                                        </div>
+                                    )}
                                 </div>
-                                <h1 className="text-3xl font-display font-black uppercase italic tracking-tighter text-center leading-none mb-2">{player?.name || '---'}</h1>
+                                <h1 className="text-2xl sm:text-3xl font-display font-black uppercase italic tracking-tighter text-center leading-tight mb-3 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                    {player?.name || '---'}
+                                </h1>
                                 <div className="flex items-center gap-2">
                                     <span className="bg-red-600/10 text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-red-600/20">Osos {player.category_name}</span>
                                     {player?.status === 'inactive' && (
@@ -567,7 +582,12 @@ const PlayerDetail = () => {
                                             <div className="flex flex-col gap-3 pt-4 border-t border-zinc-900">
                                                 <button 
                                                     onClick={async () => {
-                                                        const newPass = window.prompt("Ingresa la nueva contraseña temporal:", "osos2026");
+                                                        if (!player?.user_id) {
+                                                            alert("Este jugador no tiene un usuario de tutor vinculado.");
+                                                            return;
+                                                        }
+                                                        const defaultTempPass = "osos" + new Date().getFullYear();
+                                                        const newPass = window.prompt("Ingresa la nueva contraseña temporal:", defaultTempPass);
                                                         if (!newPass) return;
                                                         try {
                                                             const res = await fetch(`/api/users/${player.user_id}/password`, {
@@ -578,8 +598,13 @@ const PlayerDetail = () => {
                                                             if (res.ok) {
                                                                 alert("Contraseña actualizada con éxito.");
                                                                 setPlayer(prev => ({ ...prev, parent_password: newPass }));
+                                                            } else {
+                                                                const errData = await res.json().catch(() => ({}));
+                                                                alert("Error al actualizar: " + (errData.message || "Error del servidor"));
                                                             }
-                                                        } catch (e) { alert("Error al actualizar"); }
+                                                        } catch (e) { 
+                                                            alert("Error al actualizar la contraseña."); 
+                                                        }
                                                     }}
                                                     className="w-full bg-zinc-900 border border-zinc-800 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
                                                 >
@@ -589,7 +614,15 @@ const PlayerDetail = () => {
                                                     onClick={() => {
                                                         const pass = player.parent_password || '********';
                                                         const text = `Club Osos de Chiapas\n\nAccesos Portal de Padres:\nEmail: ${player.parent_email}\nPass: ${pass}\nLink: ${window.location.origin}/login`;
-                                                        const phone = player.parent_phone ? player.parent_phone.replace(/\D/g,'') : '';
+                                                        const cleanPhone = (rawPhone) => {
+                                                            if (!rawPhone) return '';
+                                                            const clean = rawPhone.replace(/\D/g, '');
+                                                            if (clean.length === 10) {
+                                                                return `52${clean}`;
+                                                            }
+                                                            return clean;
+                                                        };
+                                                        const phone = cleanPhone(player.parent_phone);
                                                         const wpUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
                                                         window.open(wpUrl, '_blank');
                                                     }}

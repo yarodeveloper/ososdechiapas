@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const getInitials = (name) => {
+    if (!name) return 'O';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 const PortalFamilies = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
@@ -41,8 +48,8 @@ const PortalFamilies = () => {
                 {/* 1. Account Info Card */}
                 <section className="rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                     <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-20 h-20 rounded-full border-4 border-red-600/20 overflow-hidden" style={{ backgroundColor: 'var(--bg-main)' }}>
-                            <img src={user?.avatar_url || 'https://i.pravatar.cc/100'} className="w-full h-full object-cover" />
+                        <div className="w-20 h-20 rounded-full border-4 border-red-600/20 flex items-center justify-center font-black text-2xl text-white bg-gradient-to-br from-red-600 via-[#1e0000] to-black shadow-[0_0_15px_rgba(220,38,38,0.4)] tracking-tighter select-none shrink-0">
+                            {getInitials(user?.name)}
                         </div>
                         <div>
                             <span className="text-[10px] font-black text-red-600 tracking-widest leading-none block italic">Tutor Oficial</span>

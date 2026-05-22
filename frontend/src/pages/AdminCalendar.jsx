@@ -176,11 +176,18 @@ const AdminCalendar = () => {
                         <div key={ev.id} className="card rounded-[2.5rem] p-7 shadow-xl relative group border-2" style={{ borderColor: 'var(--border-main)' }}>
                             <div className="flex justify-between items-start mb-6">
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest ${getTypeStyle(ev.event_type)}`}>{ev.event_type}</span>
                                         <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>{ev.category_name || 'GENERAL'}</span>
+                                        {ev.location_name && (
+                                            <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                                                🏟️ {ev.location_name}
+                                            </span>
+                                        )}
                                     </div>
-                                    <h4 className="text-lg font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-main)' }}>{ev.title}</h4>
+                                    <h4 className="text-lg font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-main)' }}>
+                                        {ev.event_type === 'match' ? `OSOS vs ${ev.rival_name || 'RIVAL'}` : ev.title}
+                                    </h4>
                                     <p className="text-[9px] font-black text-red-600 uppercase italic">{new Date(ev.start_time).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour12: false, hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -197,23 +204,33 @@ const AdminCalendar = () => {
                                 <div className="mt-4 pt-5 border-t space-y-4" style={{ borderColor: 'var(--border-main)' }}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <input 
-                                                type="number" 
-                                                value={ev.score_osos ?? ''} 
-                                                placeholder="OSOS"
-                                                onChange={(e) => updateScore(ev.id, e.target.value, ev.score_rival)}
-                                                className="w-14 border rounded-xl py-2 text-center text-xs font-black text-red-600 outline-none focus:border-red-600"
-                                                style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
-                                            />
-                                            <span className="text-[10px] font-black italic" style={{ color: 'var(--text-dim)' }}>VS</span>
-                                            <input 
-                                                type="number" 
-                                                value={ev.score_rival ?? ''} 
-                                                placeholder="RIVAL"
-                                                onChange={(e) => updateScore(ev.id, ev.score_osos, e.target.value)}
-                                                className="w-14 border rounded-xl py-2 text-center text-xs font-black outline-none focus:border-zinc-600"
-                                                style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}
-                                            />
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">OSOS</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={ev.score_osos ?? ''} 
+                                                    placeholder="0"
+                                                    onFocus={(e) => e.target.select()}
+                                                    onChange={(e) => updateScore(ev.id, e.target.value, ev.score_rival)}
+                                                    className="w-14 border rounded-xl py-2 text-center text-xs font-black text-red-600 outline-none focus:border-red-600"
+                                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
+                                                />
+                                            </div>
+                                            
+                                            <span className="text-[10px] font-black italic mt-4" style={{ color: 'var(--text-dim)' }}>-</span>
+                                            
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[60px]" style={{ color: 'var(--text-dim)' }}>{ev.rival_name || 'RIVAL'}</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={ev.score_rival ?? ''} 
+                                                    placeholder="0"
+                                                    onFocus={(e) => e.target.select()}
+                                                    onChange={(e) => updateScore(ev.id, ev.score_osos, e.target.value)}
+                                                    className="w-14 border rounded-xl py-2 text-center text-xs font-black outline-none focus:border-zinc-600"
+                                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                                />
+                                            </div>
                                         </div>
                                         <button 
                                             onClick={() => navigate(`/admin/matches/${ev.id}/stats`)}

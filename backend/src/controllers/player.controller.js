@@ -18,7 +18,7 @@ const createPlayer = async (req, res) => {
 
     // 1. Manejo del Tutor (Padre)
     let parentId;
-    let tempPassword = parent_phone || 'clubosos123';
+    let tempPassword = 'osos' + new Date().getFullYear();
 
     const [existingUser] = await db.query('SELECT id FROM users WHERE email = ?', [parent_email]);
     
@@ -28,7 +28,7 @@ const createPlayer = async (req, res) => {
       // Crear nueva cuenta de familia
       const [userResult] = await db.query(
         'INSERT INTO users (name, email, password_hash, phone, role) VALUES (?, ?, ?, ?, ?)',
-        [parent_name || 'Tutor Osos', parent_email, tempPassword, parent_phone || null, 'family']
+        [parent_name || 'Tutor Osos', parent_email, tempPassword, parent_phone || null, 'parent']
       );
       parentId = userResult.insertId;
     }
@@ -93,20 +93,83 @@ const updatePlayer = async (req, res) => {
     }
 
     // Sync user status + update parent data
-    if (existing[0].user_id) {
-       const userIsActive = (status === 'baja') ? 0 : 1;
-       await db.query('UPDATE users SET is_active=? WHERE id=?', [userIsActive, existing[0].user_id]);
-       
-       // Update parent data — only if email present to avoid NOT NULL violation
-       if (existing[0].user_id !== 1 && parent_email) {
+    let currentUserId = existing[0].user_id;
+
+    if (parent_email) {
+      // Buscar si ya existe un usuario con este correo
+      const [existingUserByEmail] = await db.query('SELECT id FROM users WHERE email = ?', [parent_email]);
+
+      if (!currentUserId || currentUserId === 1) {
+        // Si el jugador no tiene tutor o está vinculado al admin (ID 1), creamos o vinculamos uno nuevo
+        if (existingUserByEmail.length > 0) {
+          // Si el correo ya existe, lo vinculamos a ese usuario existente
+          currentUserId = existingUserByEmail[0].id;
+          await db.query('UPDATE players SET user_id = ? WHERE id = ?', [currentUserId, id]);
+
+          // Actualizar opcionalmente nombre y teléfono del tutor existente
+          const updateFields = [];
+          const updateValues = [];
+          if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
+          if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
+          if (updateFields.length > 0) {
+            updateValues.push(currentUserId);
+            await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
+          }
+        } else {
+          // Si no existe, creamos una nueva cuenta de familia
+          const tempPassword = 'osos' + new Date().getFullYear();
+          const [userResult] = await db.query(
+            'INSERT INTO users (name, email, password_hash, phone, role) VALUES (?, ?, ?, ?, ?)',
+            [parent_name || 'Tutor Osos', parent_email, tempPassword, parent_phone || null, 'parent']
+          );
+          currentUserId = userResult.insertId;
+          await db.query('UPDATE players SET user_id = ? WHERE id = ?', [currentUserId, id]);
+        }
+      } else {
+        // El jugador ya tiene un tutor real vinculado (distinto del admin ID 1)
+        if (existingUserByEmail.length > 0) {
+          const matchedUserId = existingUserByEmail[0].id;
+          if (matchedUserId !== currentUserId) {
+            // El correo pertenece a OTRO usuario. Vinculamos el jugador a ese otro usuario.
+            currentUserId = matchedUserId;
+            await db.query('UPDATE players SET user_id = ? WHERE id = ?', [currentUserId, id]);
+
+            // Actualizamos nombre y teléfono del otro usuario si se especifican
+            const updateFields = [];
+            const updateValues = [];
+            if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
+            if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
+            if (updateFields.length > 0) {
+              updateValues.push(currentUserId);
+              await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
+            }
+          } else {
+            // El correo pertenece al mismo usuario actual. Actualizamos sus datos.
+            const updateFields = [];
+            const updateValues = [];
+            if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
+            updateFields.push('email=?'); updateValues.push(parent_email);
+            if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
+            updateValues.push(currentUserId);
+            await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
+          }
+        } else {
+          // El correo no existe en el sistema. Cambiamos el correo del usuario actual.
           const updateFields = [];
           const updateValues = [];
           if (parent_name !== undefined) { updateFields.push('name=?'); updateValues.push(parent_name || null); }
           updateFields.push('email=?'); updateValues.push(parent_email);
-          if (parent_phone !== undefined){ updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
-          updateValues.push(existing[0].user_id);
+          if (parent_phone !== undefined) { updateFields.push('phone=?'); updateValues.push(parent_phone || null); }
+          updateValues.push(currentUserId);
           await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id=?`, updateValues);
-       }
+        }
+      }
+    }
+
+    // Sincronizar el estado del usuario (is_active)
+    if (currentUserId && currentUserId !== 1) {
+      const userIsActive = (status === 'baja') ? 0 : 1;
+      await db.query('UPDATE users SET is_active=? WHERE id=?', [userIsActive, currentUserId]);
     }
 
     res.json({ message: "Jugador actualizado con éxito" });

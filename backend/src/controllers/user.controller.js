@@ -3,7 +3,7 @@ const db = require('../config/db');
 // Get all parents (to populate the select field in the registration form)
 const getAllParents = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT id, name, email FROM users WHERE role = 'family' ORDER BY name ASC");
+    const [rows] = await db.query("SELECT id, name, email FROM users WHERE role = 'parent' ORDER BY name ASC");
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving parents', error: error.message });
@@ -19,8 +19,8 @@ const createParent = async (req, res) => {
       return res.status(400).json({ message: 'Nombre, correo y teléfono son requeridos' });
     }
 
-    // Role is hardcoded to 'family' to match the rest of the codebase
-    const role = 'family';
+    // Role is hardcoded to 'parent' to match the database ENUM
+    const role = 'parent';
     // Password is set to the phone number
     const password_hash = phone; 
 

@@ -5,6 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { InstagramEmbed } from 'react-social-media-embed';
 import SvgIcon from '../components/SvgIcon';
 
+const getInitials = (name) => {
+    if (!name) return 'O';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 const PortalDashboard = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
@@ -116,8 +123,8 @@ const PortalDashboard = () => {
                 {/* 1. Header */}
                 <header className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full border-2 border-red-600 overflow-hidden" style={{ backgroundColor: 'var(--bg-card)' }}>
-                            <img src={user?.avatar_url || 'https://i.pravatar.cc/100'} alt="Profile" className="w-full h-full object-cover" />
+                        <div className="w-10 h-10 rounded-full border-2 border-red-600 flex items-center justify-center font-black text-xs text-white bg-gradient-to-br from-red-600 via-[#1e0000] to-black shadow-[0_0_10px_rgba(220,38,38,0.3)] tracking-tighter select-none">
+                            {getInitials(user?.name)}
                         </div>
                         <h1 className="text-lg font-black tracking-tighter uppercase italic">Club <span className="text-red-600">Osos</span></h1>
                     </div>
@@ -134,8 +141,7 @@ const PortalDashboard = () => {
 
                 {/* 2. Welcome Title */}
                 <div>
-                    <h3 className="text-[10px] font-black text-red-600 tracking-[0.3em] italic mb-1">Portal Familiar</h3>
-                    <h2 className="text-3xl font-black tracking-tighter uppercase italic leading-none">Hola, Familia {user?.name?.split(' ').pop()}</h2>
+                    <h3 className="text-[10px] font-black text-red-600 tracking-[0.3em] italic leading-none">Portal Familiar</h3>
                 </div>
 
                 {/* 3. Estatus de Cuenta Card (Red) */}

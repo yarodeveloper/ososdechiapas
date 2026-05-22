@@ -282,7 +282,7 @@ const Dashboard = () => {
                           <div className="flex justify-between items-start">
                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-1 bg-red-600 text-white rounded-md">{match.category_name}</span>
                              <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
-                                {new Date(match.match_date).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}
+                                {new Date(match.start_time).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}
                              </span>
                           </div>
 
@@ -294,7 +294,7 @@ const Dashboard = () => {
                                       <span className="text-4xl font-display font-black italic leading-none" style={{ color: 'var(--text-main)' }}>{displayOsos}</span>
                                    </div>
                                    <div className="flex flex-col items-center pb-1">
-                                      <span className="text-[9px] font-black opacity-20">VS</span>
+                                      <span className="text-[10px] font-black opacity-30">-</span>
                                       {!hasScore && (
                                          <span className="text-[7px] font-black uppercase tracking-widest mt-1 px-1.5 py-0.5 rounded-full animate-pulse"
                                             style={{ backgroundColor: 'rgba(220,38,38,0.15)', color: 'var(--primary)' }}>

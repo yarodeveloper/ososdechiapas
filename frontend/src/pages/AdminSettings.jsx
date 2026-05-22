@@ -14,7 +14,10 @@ const AdminSettings = () => {
     const [message, setMessage] = useState(null);
 
     // Security state
-    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+    const [passwordData, setPasswordData] = useState(() => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        return { email: user.email || '', newPassword: '', confirmPassword: '' };
+    });
 
     // Social Links state
     const [socialPosts, setSocialPosts] = useState([]);
@@ -80,29 +83,47 @@ const AdminSettings = () => {
     const handlePasswordChange = async (e) => {
         e.preventDefault();
         setMessage(null);
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setMessage({ type: 'error', text: 'Las contraseñas no coinciden' });
-            return;
+        
+        if (passwordData.newPassword || passwordData.confirmPassword) {
+            if (passwordData.newPassword !== passwordData.confirmPassword) {
+                setMessage({ type: 'error', text: 'Las contraseñas no coinciden' });
+                return;
+            }
+            if (passwordData.newPassword.length < 6) {
+                setMessage({ type: 'error', text: 'La contraseña debe tener mínimo 6 caracteres' });
+                return;
+            }
         }
-        if (passwordData.newPassword.length < 6) {
-            setMessage({ type: 'error', text: 'Mínimo 6 caracteres' });
+
+        if (!passwordData.email || !passwordData.email.trim()) {
+            setMessage({ type: 'error', text: 'El correo electrónico es requerido' });
             return;
         }
         
         setSaving(true);
         try {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const res = await fetch('/api/auth/update-first-password', {
+            const res = await fetch('/api/auth/update-profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, newPassword: passwordData.newPassword })
+                body: JSON.stringify({ 
+                    userId: user.id, 
+                    email: passwordData.email,
+                    newPassword: passwordData.newPassword || undefined
+                })
             });
+            const data = await res.json();
             if (res.ok) {
-                setMessage({ type: 'success', text: '¡Contraseña actualizada!' });
-                setPasswordData({ newPassword: '', confirmPassword: '' });
-                setTimeout(() => setView('menu'), 2000);
+                setMessage({ type: 'success', text: '¡Configuración guardada correctamente!' });
+                
+                // Update local storage
+                const updatedUser = { ...user, email: data.user.email };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                
+                setPasswordData(prev => ({ ...prev, newPassword: '', confirmPassword: '' }));
+                setTimeout(() => setView('menu'), 1500);
             } else {
-                setMessage({ type: 'error', text: 'Error al cambiar contraseña' });
+                setMessage({ type: 'error', text: data.message || 'Error al cambiar configuración' });
             }
         } catch (err) {
             setMessage({ type: 'error', text: 'Error de conexión' });
@@ -364,10 +385,21 @@ const AdminSettings = () => {
                             
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Nueva Contraseña</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Correo Electrónico</label>
+                                    <input 
+                                        type="email"
+                                        required
+                                        className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold"
+                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                        placeholder="correo@ejemplo.com"
+                                        value={passwordData.email}
+                                        onChange={e => setPasswordData({...passwordData, email: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Nueva Contraseña (Opcional)</label>
                                     <input 
                                         type="password"
-                                        required
                                         className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold tracking-widest"
                                         style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                         placeholder="••••••••"
@@ -376,10 +408,9 @@ const AdminSettings = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Confirmar Contraseña</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: 'var(--text-dim)' }}>Confirmar Contraseña (Opcional)</label>
                                     <input 
                                         type="password"
-                                        required
                                         className="w-full border rounded-2xl py-4 px-5 text-sm focus:border-red-600 outline-none transition-all font-bold tracking-widest"
                                         style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
                                         placeholder="••••••••"
@@ -403,7 +434,7 @@ const AdminSettings = () => {
                             disabled={saving}
                             className="w-full bg-red-600 text-white py-5 rounded-[2rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-red-900/40 active:scale-95 transition-all disabled:opacity-50"
                         >
-                            {saving ? 'PROCESANDO...' : 'ACTUALIZAR CONTRASEÑA'}
+                            {saving ? 'PROCESANDO...' : 'ACTUALIZAR CONFIGURACIÓN'}
                         </button>
                     </form>
                 ) : view === 'theme' ? (

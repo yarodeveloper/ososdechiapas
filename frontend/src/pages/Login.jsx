@@ -14,6 +14,12 @@ const Login = () => {
   const [tempToken, setTempToken] = useState(null);
   const [tempUser, setTempUser] = useState(null);
 
+  // Password Recovery states
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryMessage, setRecoveryMessage] = useState(null);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -100,6 +106,47 @@ const Login = () => {
     }
   };
 
+  const handleRecoverySubmit = async (e) => {
+    e.preventDefault();
+    setRecoveryLoading(true);
+    setRecoveryMessage(null);
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: recoveryEmail })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setRecoveryMessage({
+          type: 'success',
+          text: data.message || 'Se ha enviado la contraseña temporal.'
+        });
+        if (data.tempPassword) {
+          console.log('TEMPORARY PASSWORD FOR TESTING:', data.tempPassword);
+        }
+      } else {
+        setRecoveryMessage({
+          type: 'error',
+          text: data.message || 'Error al procesar la solicitud'
+        });
+      }
+    } catch (err) {
+      setRecoveryMessage({
+        type: 'error',
+        text: 'Error de conexión con el servidor'
+      });
+      console.error(err);
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
   return (
     <div className="bg-black min-h-screen flex flex-col items-center justify-center px-6">
       {!forcePasswordChange && (
@@ -162,7 +209,13 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Contraseña</label>
-                <a href="#" className="text-[10px] font-bold text-red-600 uppercase tracking-widest hover:text-red-500 transition-colors">¿Olvidaste?</a>
+                <button 
+                  type="button" 
+                  onClick={() => setShowRecoveryModal(true)} 
+                  className="text-[10px] font-bold text-red-600 uppercase tracking-widest hover:text-red-500 transition-colors"
+                >
+                  ¿Olvidaste?
+                </button>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-600 group-focus-within:text-red-600 transition-colors">
@@ -253,6 +306,61 @@ const Login = () => {
           </footer>
         )}
       </div>
+
+      {showRecoveryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-fade">
+          <div className="w-full max-w-md bg-zinc-950 border border-zinc-900 rounded-3xl p-8 shadow-2xl relative space-y-6">
+            <button 
+              onClick={() => {
+                setShowRecoveryModal(false);
+                setRecoveryMessage(null);
+                setRecoveryEmail('');
+              }}
+              className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+
+            <header className="text-center space-y-2">
+              <div className="w-16 h-16 bg-red-600/10 border border-red-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-600 shadow-xl shadow-red-950/20">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              </div>
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter">Recuperar <span className="text-red-600">Acceso</span></h2>
+              <p className="text-zinc-400 text-xs font-semibold uppercase tracking-widest leading-relaxed">Ingresa tu correo para recibir una clave temporal</p>
+            </header>
+
+            <form onSubmit={handleRecoverySubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                <input 
+                  type="email" 
+                  required
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 px-5 text-white focus:border-red-600 outline-none transition-all placeholder:text-zinc-700 text-sm font-semibold"
+                  placeholder="ejemplo@osos.com"
+                  value={recoveryEmail}
+                  onChange={e => setRecoveryEmail(e.target.value)}
+                />
+              </div>
+
+              {recoveryMessage && (
+                <div className={`p-4 rounded-xl text-center text-[10px] font-black uppercase tracking-widest animate-shake
+                  ${recoveryMessage.type === 'success' ? 'bg-green-600/10 text-green-500 border border-green-600/20' : 'bg-red-600/10 text-red-500 border border-red-600/20'}
+                `}>
+                  {recoveryMessage.text}
+                </div>
+              )}
+
+              <button 
+                type="submit"
+                disabled={recoveryLoading}
+                className="w-full bg-red-600 text-white py-4 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-red-500 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {recoveryLoading ? 'ENVIANDO...' : 'RECUPERAR CONTRASEÑA'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

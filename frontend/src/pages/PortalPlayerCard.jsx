@@ -100,39 +100,50 @@ const PortalPlayerCard = () => {
 
             <main className="max-w-md mx-auto px-6 pt-24 space-y-10 relative z-10">
                 {/* 1. Player Card Design */}
-                <section className="relative group">
-                    <div className="absolute inset-0 bg-red-600/20 blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="bg-zinc-950 border border-zinc-900 rounded-[3rem] p-1 shadow-2xl overflow-hidden">
-                        <div className="bg-gradient-to-br from-zinc-900 to-black rounded-[2.8rem] p-8 aspect-[3/4] flex flex-col justify-between relative overflow-hidden">
-                            {/* Decorative Grid */}
-                            <div className="absolute inset-0 opacity-[0.03] select-none pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                            
-                            <div className="flex justify-between items-start">
-                                <span className="text-[10px] font-black tracking-widest bg-red-600 px-4 py-1.5 rounded-full shadow-lg shadow-red-900/40">OFFICIAL RECRUIT</span>
-                                <span className="text-4xl font-black italic tracking-tighter text-red-600/30 font-display">#{player?.jersey_number || '00'}</span>
-                            </div>
+                <section className="relative group flex justify-center mb-4 mt-2">
+                    <div className="absolute inset-0 bg-red-600/10 blur-[60px] rounded-full scale-75"></div>
+                    <div className="bg-gradient-to-b from-[#130707] to-[#0a0303] border border-red-900/20 rounded-[3rem] w-full max-w-[340px] pt-10 pb-12 px-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+                        
+                        {/* Background Watermark */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] text-[140px] font-black italic text-red-600/5 select-none pointer-events-none font-display uppercase tracking-tighter leading-none z-0">
+                            OSOS
+                        </div>
 
-                            <div className="absolute inset-0 flex items-end justify-center pointer-events-none overflow-hidden">
-                                {player?.photo_url && (
-                                    <img 
-                                        src={player.photo_url} 
-                                        className="h-full w-full object-contain object-bottom opacity-80 group-hover:scale-105 transition-transform duration-700" 
-                                        alt={player.name}
-                                    />
+                        {/* Top Headers */}
+                        <div className="relative z-10 mb-8 w-full">
+                            <h3 className="text-zinc-700 text-[11px] font-black uppercase tracking-[0.3em] mb-1">Club Deportivo</h3>
+                            <h4 className="text-red-600 text-[9px] font-black uppercase tracking-[0.4em]">Club Osos de Chiapas</h4>
+                        </div>
+
+                        {/* Avatar Circle */}
+                        <div className="relative z-10 mb-10 mt-2">
+                            <div className="w-52 h-52 rounded-full border-[6px] border-[#130707] ring-[3px] ring-red-600 shadow-[0_0_40px_rgba(220,38,38,0.15)] bg-zinc-900 overflow-hidden group-hover:scale-105 transition-transform duration-500 relative z-10">
+                                {player?.photo_url ? (
+                                    <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-5xl text-zinc-800 font-black">
+                                        {player?.name?.charAt(0) || 'O'}
+                                    </div>
                                 )}
                             </div>
-
-                            <div className="space-y-4 relative z-10">
-                                <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none drop-shadow-2xl">
-                                    {player?.name?.split(' ')[0]}<br/>
-                                    <span className="text-red-600">{player?.name?.split(' ').slice(1).join(' ') || 'CHAMP'}</span>
-                                </h2>
-                                <div className="flex items-center gap-6 text-[10px] font-black text-zinc-500 tracking-widest uppercase italic">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
-                                    <span>{player?.category_name || 'U-15'}</span>
-                                </div>
+                            
+                            {/* Number Badge */}
+                            <div className="absolute -bottom-2 -right-2 bg-[#dc2626] text-white text-3xl font-black italic tracking-tighter rounded-[1rem] px-5 py-2 border-[6px] border-[#130707] shadow-xl z-20 group-hover:rotate-6 group-hover:scale-110 transition-all">
+                                #{player?.jersey_number || '00'}
                             </div>
                         </div>
+
+                        {/* Name and Position */}
+                        <div className="relative z-10 space-y-4 w-full">
+                            <h2 className="text-[2.5rem] font-black tracking-tight uppercase italic leading-[0.9] drop-shadow-md text-white font-display">
+                                {player?.name?.split(' ')[0]}<br/>
+                                <span>{player?.name?.split(' ').slice(1).join(' ') || 'CHAMP'}</span>
+                            </h2>
+                            <p className="text-red-600 text-[9px] font-black uppercase tracking-[0.2em] italic">
+                                Posición: <span className="text-red-500">{player?.category_name || 'U-15'}</span>
+                            </p>
+                        </div>
+
                     </div>
                 </section>
 
