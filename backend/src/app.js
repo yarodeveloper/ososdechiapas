@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Forzar la zona horaria desde las variables de entorno o usar la de CDMX/Chiapas por defecto
 process.env.TZ = process.env.TZ || 'America/Mexico_City';

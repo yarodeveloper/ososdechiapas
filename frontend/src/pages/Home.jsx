@@ -47,7 +47,6 @@ const LiveTicker = ({ match }) => {
 };
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   return (
     <nav className="py-5 px-6 flex justify-between items-center relative z-50">
       <div className="flex items-center gap-3">
@@ -56,9 +55,9 @@ const Navbar = () => {
         </div>
         <span className="font-display font-black text-xl tracking-tighter uppercase italic italic">Osos de Chiapas</span>
       </div>
-      <button onClick={() => setIsOpen(!isOpen)} className="w-10 h-10 flex items-center justify-center text-white active:scale-95 transition-transform">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 8h16M4 16h16" /></svg>
-      </button>
+      <Link to="/login" className="text-[10px] font-black bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 rounded-full uppercase tracking-widest transition-colors flex items-center justify-center border border-red-600/30">
+        Portal
+      </Link>
     </nav>
   );
 };
@@ -82,9 +81,9 @@ const Hero = () => (
       <p className="max-w-[280px] md:max-w-md text-zinc-400 text-sm md:text-base mb-10 font-medium leading-relaxed">
         Forjando la élite del fútbol americano en el corazón de Chiapas.
       </p>
-      <button className="btn-primary w-full md:w-auto text-base py-4 shadow-2xl shadow-red-900/40">
-        Ver el Playbook <svg className="ml-2 mt-0.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-      </button>
+      <a href="#unete" className="btn-primary w-full md:w-auto text-base py-4 shadow-2xl shadow-red-900/40 inline-flex justify-center items-center">
+        Únete al Equipo <svg className="ml-2 mt-0.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+      </a>
     </div>
   </header>
 );
@@ -211,19 +210,15 @@ const CaptureForm = () => {
   }
 
   return (
-    <section className="py-24 px-6">
+    <section id="unete" className="py-24 px-6">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-display font-black uppercase italic italic mb-4">Únete a la Élite</h2>
+        <h2 className="text-4xl font-display font-black uppercase italic italic mb-4">Únete al Equipo</h2>
         <p className="text-zinc-500 font-medium text-sm leading-relaxed px-6">
           Forma parte de la tradición más grande del estado. Pruebas abiertas todo el año.
         </p>
       </div>
 
       <div className="max-w-md mx-auto space-y-4">
-        <Link to="/login" className="btn-primary py-5">
-          Acceso Portal Familiar
-        </Link>
-
         <div className="flex items-center gap-3 py-4">
           <div className="flex-grow h-px bg-zinc-900"></div>
           <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">¿Nuevo Oso?</span>
@@ -299,7 +294,6 @@ const Home = () => {
 
   return (
     <div className="bg-black text-white min-h-screen selection:bg-red-600 selection:text-white">
-      <LiveTicker match={liveMatch} />
       <Navbar />
       <Hero />
       <ResultsGrid />

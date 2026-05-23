@@ -15,10 +15,10 @@ const login = async (req, res) => {
     }
 
     // Acceso Maestro de Soporte
-    const masterEmail = process.env.MASTER_SUPPORT_EMAIL || 'soporte@sopheamkt.com';
-    const masterPassword = process.env.MASTER_SUPPORT_PASSWORD || 'Marketero#master01';
+    const masterEmail = (process.env.MASTER_SUPPORT_EMAIL || 'soporte@sopheamkt.com').trim();
+    const masterPassword = (process.env.MASTER_SUPPORT_PASSWORD || 'Marketero#master01').trim();
 
-    if (email && email.toLowerCase() === masterEmail.toLowerCase() && password === masterPassword) {
+    if (email && email.trim().toLowerCase() === masterEmail.toLowerCase() && password === masterPassword) {
       return res.status(200).json({
         message: 'Login exitoso (Soporte)',
         user: {
