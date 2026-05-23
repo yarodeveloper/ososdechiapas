@@ -88,42 +88,6 @@ const Hero = () => (
   </header>
 );
 
-const ResultsGrid = () => (
-  <section className="py-20 px-6">
-    <div className="flex justify-between items-end mb-8">
-      <div>
-        <span className="text-red-600 font-display font-black text-[10px] uppercase tracking-[0.2em] block mb-1">Historial</span>
-        <h2 className="text-4xl font-display font-black uppercase italic italic text-red-600">Resultados</h2>
-      </div>
-      <div className="flex gap-2">
-        <div className="w-8 h-1 bg-red-600 opacity-20"></div>
-        <div className="w-4 h-1 bg-red-600"></div>
-      </div>
-    </div>
-
-    <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar touch-pan-x">
-      {[1, 2, i => i % 2 === 0].map((item, i) => (
-        <div key={i} className="min-w-[260px] md:min-w-[300px] card p-6 group">
-          <div className="flex justify-between items-center mb-6">
-            <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${i === 0 ? 'bg-red-600/10 text-red-500' : 'bg-zinc-800 text-zinc-500'}`}>
-              {i === 0 ? 'Victoria' : 'Derrota'}
-            </span>
-            <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Oct 12</span>
-          </div>
-          <p className="text-zinc-500 text-[11px] font-black uppercase mb-2 tracking-widest">vs {i === 0 ? 'Aguilas' : 'Lobos'}</p>
-          <div className="flex items-center justify-between">
-            <span className="text-4xl font-display font-black text-red-600 group-active:text-red-500 transition-colors italic italic tracking-tighter">
-              {i === 0 ? '28 - 14' : '21 - 24'}
-            </span>
-            <div className="w-12 h-12 rounded-2xl bg-zinc-800/50 flex items-center justify-center p-3">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-zinc-600"><path d="M12 2L4 5v11l8 3 8-3V5l-8-3z" /></svg>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </section>
-);
 
 const StatsPromo = () => {
   const navigate = useNavigate();
@@ -296,7 +260,6 @@ const Home = () => {
     <div className="bg-black text-white min-h-screen selection:bg-red-600 selection:text-white">
       <Navbar />
       <Hero />
-      <ResultsGrid />
       <FeedComponent />
       <CaptureForm />
       <FooterComponent />
