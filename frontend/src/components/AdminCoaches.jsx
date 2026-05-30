@@ -95,22 +95,36 @@ const AdminCoaches = () => {
     };
 
     const handleSendWhatsApp = async (id) => {
+        const newWin = window.open('', '_blank');
+        if (!newWin) {
+            setMessage({ type: 'error', text: 'Por favor habilita las ventanas emergentes (pop-ups) en tu navegador.' });
+            setTimeout(() => setMessage(null), 3000);
+            return;
+        }
+
         try {
             const res = await fetch(`/api/users/coaches/${id}/credentials`);
             const data = await res.json();
             if (res.ok) {
                 if (!data.phone) {
+                    newWin.close();
                     setMessage({ type: 'error', text: 'El coach no tiene un celular registrado.' });
                     setTimeout(() => setMessage(null), 3000);
                     return;
                 }
-                const msg = `Hola ${data.name},\n\nBienvenido al cuerpo técnico de Osos de Chiapas. Aquí tienes tus credenciales para ingresar a la plataforma (https://clubosos.sopheamkt.com):\n\n*Usuario:* ${data.email}\n*Contraseña:* ${data.password}`;
-                window.open(`https://wa.me/${data.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                const msg = `Hola ${data.name},\n\nBienvenido al cuerpo técnico de Osos de Chiapas. Aquí tienes tus credenciales para ingresar a la plataforma (https://clubosos.com):\n\n*Usuario:* ${data.email}\n*Contraseña:* ${data.password}`;
+                
+                let phoneNum = data.phone.replace(/\D/g, '');
+                if(phoneNum.length === 10) phoneNum = '52' + phoneNum;
+
+                newWin.location.href = `https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`;
             } else {
+                newWin.close();
                 setMessage({ type: 'error', text: data.message || 'Error al obtener credenciales.' });
                 setTimeout(() => setMessage(null), 3000);
             }
         } catch (err) {
+            newWin.close();
             setMessage({ type: 'error', text: 'Error de red al obtener credenciales.' });
             setTimeout(() => setMessage(null), 3000);
         }
@@ -121,7 +135,7 @@ const AdminCoaches = () => {
             const res = await fetch(`/api/users/coaches/${id}/credentials`);
             const data = await res.json();
             if (res.ok) {
-                const msg = `Hola ${data.name},\n\nBienvenido al cuerpo técnico de Osos de Chiapas. Aquí tienes tus credenciales para ingresar a la plataforma (https://clubosos.sopheamkt.com):\n\n*Usuario:* ${data.email}\n*Contraseña:* ${data.password}`;
+                const msg = `Hola ${data.name},\n\nBienvenido al cuerpo técnico de Osos de Chiapas. Aquí tienes tus credenciales para ingresar a la plataforma (https://clubosos.com):\n\n*Usuario:* ${data.email}\n*Contraseña:* ${data.password}`;
                 await navigator.clipboard.writeText(msg);
                 setMessage({ type: 'success', text: 'Credenciales copiadas al portapapeles.' });
             } else {
