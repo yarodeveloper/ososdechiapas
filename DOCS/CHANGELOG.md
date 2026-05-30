@@ -4,6 +4,23 @@ Este documento registra todas las intervenciones, mejoras y correcciones realiza
 
 ---
 
+## [2026-05-30] - Rediseño de Estadísticas Premium
+
+### ✅ Funcionalidades Nuevas
+- **Filtros Globales de Estadísticas**: Se añadió la opción "Global (Todo el Club)" para visualizar datos combinados de todas las ligas, así como la contextualización estricta por categoría.
+- **Gráficas Interactivas**: Implementación de gráficos avanzados (Chart.js) incluyendo gráfico de barras para "Poder Ofensivo" y gráfico de radar para "Muralla Defensiva".
+- **Carruseles de Navegación (PC)**: Soporte para botones de desplazamiento horizontal interactivos en los carruseles de estadísticas menores, mejorando la usabilidad en PC.
+
+### 🎨 Ajustes Visuales
+- **Podio MVP Animado**: Se reemplazó la lista tradicional por un podio dinámico y jerárquico (1º, 2º, 3º lugar) con estética premium (resplandores dorados e insignias).
+- **Glassmorphism en Detalles**: Rediseño de las vistas del Top 10 con efectos oscuros semitransparentes, contornos rojos dinámicos al hacer hover y tipografías estilo leaderboard.
+
+### 🛠️ Mejoras de Backend
+- **Soporte Global de Estadísticas**: Se modificó `stats.controller.js` para soportar `category_id = 'global'`, unificando la lógica y evitando duplicidad de endpoints.
+- **Filtro MVP Dinámico**: Integración de ordenamiento (`sortBy=mvp`) para poder obtener a los líderes MVP directamente por categoría y no sólo a nivel general.
+
+---
+
 ## [2026-05-04] - Estabilización de Producción y Dashboard de Prospectos
 
 ### ✅ Funcionalidades Nuevas
