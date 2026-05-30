@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import SvgIcon from '../components/SvgIcon';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
-    highlights: [], // Combined urgent and upcoming events
     lastResults: [],
     leadsCount: 0
   });
+  const [highlights, setHighlights] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const carouselRef = useRef(null);
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCoach = user.role === 'coach';
 
   useEffect(() => {
     // Auth Check
@@ -28,19 +33,21 @@ const Dashboard = () => {
         const pastData = await pastRes.json();
         const leadsData = await leadsRes.json();
         
-        const highlights = [];
+        const highlightsArr = [];
         const pendingStats = pastData.filter(e => e.event_type === 'match' && (e.stats_count === 0 || !e.score_osos));
-        pendingStats.slice(0, 2).forEach(m => highlights.push({ ...m, isPast: true, urgent: true }));
-        const upcoming = nextData.filter(e => !highlights.some(h => h.id === e.id)).slice(0, 3);
-        upcoming.forEach(e => highlights.push({ ...e, isPast: false }));
+        pendingStats.slice(0, 2).forEach(m => highlightsArr.push({ ...m, isPast: true, urgent: true }));
+        const upcoming = nextData.filter(e => !highlightsArr.some(h => h.id === e.id)).slice(0, 3);
+        upcoming.forEach(e => highlightsArr.push({ ...e, isPast: false }));
 
+        setHighlights(highlightsArr);
         setDashboardData({
-          highlights: highlights,
           lastResults: Array.isArray(pastData) ? pastData.slice(0, 3) : [],
           leadsCount: Array.isArray(leadsData) ? leadsData.filter(l => l.status === 'pending').length : 0
         });
       } catch (err) {
         console.error('Data error', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -49,9 +56,7 @@ const Dashboard = () => {
     // Socket.io for Real-time Leads
     const socket = io('/');
     socket.on('new_lead', (data) => {
-        // Increment count and maybe show alert
         setDashboardData(prev => ({ ...prev, leadsCount: prev.leadsCount + 1 }));
-        // Using a simple browser notification if possible or just rely on the UI update
         if (Notification.permission === 'granted') {
             new Notification('¡Nuevo Prospecto!', { body: `${data.name} quiere unirse a la manada.` });
         }
@@ -60,8 +65,32 @@ const Dashboard = () => {
     return () => socket.disconnect();
   }, [navigate]);
 
-  const { highlights, lastResults } = dashboardData;
-  const currentHighlight = highlights[0]; // For now showing the most urgent, could be a slider later
+  const handleScroll = () => {
+    if (carouselRef.current && highlights.length > 0) {
+        const scrollLeft = carouselRef.current.scrollLeft;
+        const firstChild = carouselRef.current.children[0];
+        if (firstChild) {
+            const cardWidth = firstChild.offsetWidth + 24; 
+            const newIndex = Math.round(scrollLeft / cardWidth);
+            if (newIndex !== activeIndex) {
+                setActiveIndex(newIndex);
+            }
+        }
+    }
+  };
+
+  const scrollTo = (index) => {
+    if (carouselRef.current && highlights.length > 0) {
+        const firstChild = carouselRef.current.children[0];
+        if (firstChild) {
+            const cardWidth = firstChild.offsetWidth + 24;
+            carouselRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+            setActiveIndex(index);
+        }
+    }
+  };
+
+  const { lastResults } = dashboardData;
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -111,7 +140,6 @@ const Dashboard = () => {
     navigate('/');
   }
 
-
   return (
     <div className="min-h-screen font-body pb-32 overflow-x-hidden transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
       <main className="max-w-md mx-auto px-6 py-8 space-y-10 animate-fade">
@@ -150,14 +178,47 @@ const Dashboard = () => {
         <section className="space-y-6">
            <div className="flex justify-between items-end">
               <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-dim)' }}>Agenda de Hoy</h3>
-              <div className="flex gap-1.5">
-                 {highlights?.map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === 0 ? 'var(--primary)' : 'var(--border-main)', width: i === 0 ? '12px' : '6px' }}></div>
-                 ))}
+              <div className="flex items-center gap-4">
+                  {/* Left / Right scroll buttons for PC */}
+                  {highlights?.length > 1 && (
+                      <div className="hidden md:flex gap-2">
+                          <button 
+                              onClick={() => scrollTo(activeIndex - 1)} 
+                              disabled={activeIndex === 0}
+                              className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                              style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                          >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                          </button>
+                          <button 
+                              onClick={() => scrollTo(activeIndex + 1)} 
+                              disabled={activeIndex >= highlights.length - 1}
+                              className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                              style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                          >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                          </button>
+                      </div>
+                  )}
+                  {/* Dots */}
+                  <div className="flex gap-1.5 cursor-pointer">
+                     {highlights?.map((_, i) => (
+                        <div 
+                           key={i} 
+                           onClick={() => scrollTo(i)}
+                           className="h-1.5 rounded-full transition-all" 
+                           style={{ backgroundColor: i === activeIndex ? 'var(--primary)' : 'var(--border-main)', width: i === activeIndex ? '16px' : '6px' }}
+                        ></div>
+                     ))}
+                  </div>
               </div>
            </div>
 
-           <div className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 snap-x snap-mandatory pb-4">
+           <div 
+               ref={carouselRef}
+               onScroll={handleScroll}
+               className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 snap-x snap-mandatory pb-4 smooth-scroll"
+           >
               {highlights?.length > 0 ? highlights.map((item, idx) => (
                  <div key={idx} className="min-w-[320px] snap-center relative group">
                     <div className={`absolute -inset-1 rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000 ${item.urgent ? 'bg-red-600' : 'bg-zinc-600'}`}></div>
@@ -214,10 +275,10 @@ const Dashboard = () => {
                        </div>
 
                        <button 
-                         onClick={() => navigate(item.urgent ? `/admin/matches/${item.id}/stats` : '/admin/calendar')} 
-                         className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all ${item.urgent ? 'bg-white text-red-600 shadow-white/10' : 'bg-red-600 text-white shadow-red-900/40'}`}
+                         onClick={() => navigate((item.urgent && !isCoach) ? `/admin/matches/${item.id}/stats` : '/admin/calendar')} 
+                         className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all ${(item.urgent && !isCoach) ? 'bg-white text-red-600 shadow-white/10' : 'bg-red-600 text-white shadow-red-900/40'}`}
                        >
-                          {item.urgent ? 'Llenar Estadísticas 🏈' : 'Ver detalles en Agenda'}
+                          {(item.urgent && !isCoach) ? 'Llenar Estadísticas 🏈' : 'Ver detalles en Agenda'}
                        </button>
                     </div>
                  </div>
@@ -233,10 +294,10 @@ const Dashboard = () => {
         <section className="grid grid-cols-4 gap-3">
            {[
              { label: 'Roster', icon: 'group', link: '/players/list' },
-             { label: 'Pagos', icon: 'table', link: '/admin/payments' },
+             ...(!isCoach ? [{ label: 'Pagos', icon: 'table', link: '/admin/payments' }] : []),
              { label: 'Stats', icon: 'analytics', link: '/estadisticas' },
              { label: 'Avisos', icon: 'comment', link: '/admin/announcements' },
-             { label: 'Prospectos', icon: 'target', link: '/admin/leads', count: dashboardData.leadsCount }
+             ...(!isCoach ? [{ label: 'Prospectos', icon: 'target', link: '/admin/leads', count: dashboardData.leadsCount }] : [])
            ].map((item, i) => (
              <Link key={i} to={item.link} className="flex flex-col items-center gap-2.5 group active:scale-90 transition-all relative">
                 <div className="w-[70px] h-[70px] rounded-3xl flex items-center justify-center shadow-sm group-hover:border-red-500 transition-all border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
@@ -287,7 +348,7 @@ const Dashboard = () => {
                           </div>
 
                           {!isEditing ? (
-                             <button className="w-full text-left group" onClick={() => openScoreEditor(match)}>
+                             <button className={`w-full text-left ${isCoach ? '' : 'group'}`} onClick={() => !isCoach && openScoreEditor(match)} disabled={isCoach}>
                                 <div className="flex justify-between items-end">
                                    <div className="flex flex-col">
                                       <span className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--text-dim)' }}>Osos</span>
@@ -348,16 +409,18 @@ const Dashboard = () => {
                              </div>
                           )}
                           
-                          <Link 
-                             to={`/admin/matches/${match.id}/stats`}
-                             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border hover:border-red-600 transition-colors group/btn shadow-sm"
-                             style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
-                          >
-                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover/btn:text-red-500 transition-colors" style={{ color: 'var(--text-dim)' }}>
-                                <path d="M12 20V10M18 20V4M6 20v-6" />
-                             </svg>
-                             <span className={`${match.stats_count > 0 ? 'text-red-600' : ''} text-[9px] font-black uppercase tracking-widest group-hover/btn:text-red-600 transition-colors`} style={{ color: match.stats_count > 0 ? 'text-red-600' : 'var(--text-dim)' }}>{match.stats_count > 0 ? 'Editar Stats' : 'Registrar Stats'}</span>
-                          </Link>
+                          {!isCoach && (
+                             <Link 
+                                to={`/admin/matches/${match.id}/stats`}
+                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border hover:border-red-600 transition-colors group/btn shadow-sm"
+                                style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
+                             >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover/btn:text-red-500 transition-colors" style={{ color: 'var(--text-dim)' }}>
+                                   <path d="M12 20V10M18 20V4M6 20v-6" />
+                                </svg>
+                                <span className={`${match.stats_count > 0 ? 'text-red-600' : ''} text-[9px] font-black uppercase tracking-widest group-hover/btn:text-red-600 transition-colors`} style={{ color: match.stats_count > 0 ? 'text-red-600' : 'var(--text-dim)' }}>{match.stats_count > 0 ? 'Editar Stats' : 'Registrar Stats'}</span>
+                             </Link>
+                          )}
                        </div>
                     </div>
                  );
@@ -385,10 +448,12 @@ const Dashboard = () => {
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full border-2" style={{ borderColor: 'var(--bg-main)' }}></span>
                 <span className="text-[10px] font-black uppercase tracking-widest">Inbox</span>
              </Link>
-            <Link to="/admin/settings" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/settings' ? 'text-red-600' : ''} active:scale-90 transition-all`} style={{ color: location.pathname === '/admin/settings' ? '#dc2626' : 'var(--text-dim)' }}>
-               <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/settings' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33-1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-               <span className="text-[10px] font-black uppercase tracking-widest">Config</span>
-            </Link>
+            {!isCoach && (
+               <Link to="/admin/settings" className={`flex flex-col items-center gap-1.5 ${location.pathname === '/admin/settings' ? 'text-red-600' : ''} active:scale-90 transition-all`} style={{ color: location.pathname === '/admin/settings' ? '#dc2626' : 'var(--text-dim)' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill={location.pathname === '/admin/settings' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33-1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Config</span>
+               </Link>
+            )}
          </div>
       </nav>
     </div>

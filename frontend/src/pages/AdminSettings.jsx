@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import AdminCoaches from '../components/AdminCoaches';
 
 const AdminSettings = () => {
     const navigate = useNavigate();
@@ -213,6 +214,14 @@ const AdminSettings = () => {
             icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 
             action: () => setView('security'), 
             color: 'text-red-600' 
+        },
+        { 
+            id: 'coaches', 
+            title: 'Usuarios y Coaches', 
+            desc: 'Gestionar cuentas de entrenadores',
+            icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75', 
+            action: () => setView('coaches'), 
+            color: 'text-indigo-500' 
         }
     ];
 
@@ -235,7 +244,7 @@ const AdminSettings = () => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     </button>
                     <h1 className="text-xl font-black uppercase italic tracking-tighter">
-                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : view === 'security' ? 'Seguridad' : view === 'theme' ? 'Apariencia' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
+                        {view === 'menu' ? 'Configuración' : view === 'social' ? 'Curador Social' : view === 'security' ? 'Seguridad' : view === 'theme' ? 'Apariencia' : view === 'coaches' ? 'Alta de Coaches' : 'Datos Bancarios'} <span className="text-red-600">Global</span>
                     </h1>
                 </div>
             </header>
@@ -437,6 +446,8 @@ const AdminSettings = () => {
                             {saving ? 'PROCESANDO...' : 'ACTUALIZAR CONFIGURACIÓN'}
                         </button>
                     </form>
+                ) : view === 'coaches' ? (
+                    <AdminCoaches />
                 ) : view === 'theme' ? (
                     <div className="space-y-6 animate-fade">
                         <section className="card p-8 space-y-6">

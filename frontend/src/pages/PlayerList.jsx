@@ -116,6 +116,9 @@ const PlayerList = () => {
   const [activeStatus, setActiveStatus] = useState('active'); // 'active' or 'inactive'
   const [showSearch, setShowSearch] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCoach = user.role === 'coach';
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -238,7 +241,7 @@ const PlayerList = () => {
         </div>
 
         {/* ── Status Tabs ────────────────────────────────────────────────── */}
-        {!loading && (
+        {!loading && !isCoach && (
           <div className="flex p-1 rounded-2xl border mb-5 shadow-sm transition-colors" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
             <button 
               onClick={() => setActiveStatus('active')}
@@ -328,16 +331,18 @@ const PlayerList = () => {
       </main>
 
       {/* FAB Add Player */}
-      <div className="fixed bottom-24 right-0 left-0 max-w-md mx-auto px-5 flex justify-end z-40 pointer-events-none">
-        <Link
-          to="/players/new"
-          className="w-14 h-14 bg-red-600 rounded-2xl shadow-lg shadow-red-900/20 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform pointer-events-auto"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </Link>
-      </div>
+      {!isCoach && (
+        <div className="fixed bottom-24 right-0 left-0 max-w-md mx-auto px-5 flex justify-end z-40 pointer-events-none">
+          <Link
+            to="/players/new"
+            className="w-14 h-14 bg-red-600 rounded-2xl shadow-lg shadow-red-900/20 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform pointer-events-auto"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </Link>
+        </div>
+      )}
 
       {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 w-full backdrop-blur-xl border-t z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] transition-colors" style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--border-main)' }}>

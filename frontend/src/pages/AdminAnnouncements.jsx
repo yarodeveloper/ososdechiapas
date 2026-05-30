@@ -8,6 +8,9 @@ const AdminAnnouncements = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isCoach = user.role === 'coach';
+    
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -91,12 +94,14 @@ const AdminAnnouncements = () => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                     </button>
                     <span className="text-xs font-black uppercase tracking-[0.3em] italic">Comunicados <span className="text-red-600">Osos</span></span>
-                    <button 
-                        onClick={() => setShowForm(!showForm)}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-xl shadow-red-900/40 ${showForm ? 'rotate-45' : ''}`}
-                    >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
+                    {!isCoach ? (
+                        <button 
+                            onClick={() => setShowForm(!showForm)}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-xl shadow-red-900/40 ${showForm ? 'rotate-45' : ''}`}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                    ) : <div className="w-10"></div>}
                 </div>
             </header>
 
@@ -194,9 +199,11 @@ const AdminAnnouncements = () => {
                                         `}>{ann.tag}</span>
                                         <h4 className="text-xl font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-main)' }}>{ann.title}</h4>
                                     </div>
-                                    <button onClick={() => handleDelete(ann.id)} className="w-10 h-10 rounded-xl bg-red-600/10 flex items-center justify-center text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-md active:scale-95">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
+                                    {!isCoach && (
+                                        <button onClick={() => handleDelete(ann.id)} className="w-10 h-10 rounded-xl bg-red-600/10 flex items-center justify-center text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-md active:scale-95">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    )}
                                 </div>
                                 <p className="text-xs font-medium leading-relaxed italic" style={{ color: 'var(--text-dim)' }}>{ann.content}</p>
                                 <div className="pt-4 border-t flex justify-between items-center text-[8px] font-black uppercase tracking-widest" style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)' }}>

@@ -10,6 +10,9 @@ const AdminCalendar = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
     
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isCoach = user.role === 'coach';
+    
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -119,9 +122,11 @@ const AdminCalendar = () => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                     </button>
                     <span className="text-xs font-black uppercase tracking-[0.3em] italic">Agenda <span className="text-red-600">Osos</span></span>
-                    <button onClick={() => { setShowForm(!showForm); if(showForm) setEditingEvent(null); }} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-xl shadow-red-900/40 ${showForm ? 'rotate-45' : ''}`}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
+                    {!isCoach ? (
+                        <button onClick={() => { setShowForm(!showForm); if(showForm) setEditingEvent(null); }} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-red-600 text-white shadow-xl shadow-red-900/40 ${showForm ? 'rotate-45' : ''}`}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                    ) : <div className="w-10"></div>}
                 </div>
             </header>
 
@@ -190,17 +195,19 @@ const AdminCalendar = () => {
                                     </h4>
                                     <p className="text-[9px] font-black text-red-600 uppercase italic">{new Date(ev.start_time).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour12: false, hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => handleEdit(ev)} className="transition-colors" style={{ color: 'var(--text-dim)' }}>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    </button>
-                                    <button onClick={() => deleteEvent(ev.id)} className="transition-colors" style={{ color: 'var(--text-muted)' }}>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
-                                </div>
+                                {!isCoach && (
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => handleEdit(ev)} className="transition-colors" style={{ color: 'var(--text-dim)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button onClick={() => deleteEvent(ev.id)} className="transition-colors" style={{ color: 'var(--text-muted)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
-                            {ev.event_type === 'match' && (
+                            {ev.event_type === 'match' && !isCoach && (
                                 <div className="mt-4 pt-5 border-t space-y-4" style={{ borderColor: 'var(--border-main)' }}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">

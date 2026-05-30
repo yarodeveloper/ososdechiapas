@@ -51,6 +51,8 @@ const PlayerDetail = () => {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isStaff = user.role === 'admin' || user.role === 'coach';
+    const isCoach = user.role === 'coach';
+    const isAdmin = user.role === 'admin';
 
     useEffect(() => {
         const load = async () => {
@@ -254,7 +256,7 @@ const PlayerDetail = () => {
                     <span className="font-display font-black text-[10px] uppercase tracking-[0.2em]" style={{ color: 'var(--text-dim)' }}>
                         {editing ? 'Editar Jugador' : 'Player Card'}
                     </span>
-                    {isStaff ? (
+                    {isAdmin ? (
                         <button 
                             onClick={() => editing ? handleSave() : setEditing(true)}
                             disabled={saving}
@@ -535,13 +537,15 @@ const PlayerDetail = () => {
                                         { label: 'Nombre Completo', value: player.name || 'N/A', icon: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2' },
                                         { label: 'Jersey', value: player.jersey_number ? `#${player.jersey_number}` : 'N/A', icon: 'M12 2L4 5v11l8 3 8-3V5l-8-3z' },
                                         { label: 'Fecha de Nacimiento', value: player.birth_date ? new Date(player.birth_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A', icon: 'M16 2v4M8 2v4M3 10h18' },
-                                        { label: 'CURP', value: player.curp || 'N/A', icon: 'M15 7h3a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h3' },
+                                        ...(!isCoach ? [{ label: 'CURP', value: player.curp || 'N/A', icon: 'M15 7h3a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h3' }] : []),
                                         { label: 'Sangre', value: player.blood_type_name || 'N/A', icon: 'M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z' },
                                         { label: 'Posiciones', value: player.display_positions || player.position_name || 'N/A', icon: 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8' },
                                         { label: 'Categoría', value: player.category_name || 'N/A', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2' },
-                                        { label: 'Emergencia', value: player.emergency_phone || 'N/A', icon: 'M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012 0h3a2 2 0 012 1.72' },
-                                        { label: 'Tutor / Padre', value: player.parent_name || 'N/A', icon: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M16 3.13a4 4 0 010 7.75' },
-                                        { label: 'Contacto Tutor', value: player.parent_phone || player.parent_email || 'N/A', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                                        ...(!isCoach ? [
+                                           { label: 'Emergencia', value: player.emergency_phone || 'N/A', icon: 'M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012 0h3a2 2 0 012 1.72' },
+                                           { label: 'Tutor / Padre', value: player.parent_name || 'N/A', icon: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M16 3.13a4 4 0 010 7.75' },
+                                           { label: 'Contacto Tutor', value: player.parent_phone || player.parent_email || 'N/A', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' }
+                                        ] : [])
                                     ].map((info, i) => (
                                         <div key={i} className="flex items-center gap-4 p-5 group transition-colors hover:bg-zinc-900/50">
                                             <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-red-500 transition-colors">
@@ -562,7 +566,7 @@ const PlayerDetail = () => {
                                      <p className="text-sm font-bold ml-1" style={{ color: 'var(--text-main)' }}>{player.allergies || 'Sin alertas médicas registradas.'}</p>
                                 </div>
 
-                                {isStaff && (
+                                {isAdmin && (
                                     <div className="mt-8 space-y-4">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="w-1.5 h-6 bg-blue-600"></div>
@@ -636,7 +640,7 @@ const PlayerDetail = () => {
                                     </div>
                                 )}
 
-                                {isStaff && (
+                                {user.role === 'admin' && (
                                     <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--border-main)' }}>
                                         <div className="border rounded-3xl p-8 text-center" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--primary)', borderOpacity: 0.1 }}>
                                             <h4 className="text-sm font-black uppercase italic tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Zona de Control de Roster</h4>

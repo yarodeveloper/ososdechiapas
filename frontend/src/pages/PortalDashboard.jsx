@@ -23,6 +23,12 @@ const PortalDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
 
+    const [activeAvisosIndex, setActiveAvisosIndex] = useState(0);
+    const avisosCarouselRef = React.useRef(null);
+
+    const [activeAgendaIndex, setActiveAgendaIndex] = useState(0);
+    const agendaCarouselRef = React.useRef(null);
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (!storedUser) { navigate('/login'); return; }
@@ -90,6 +96,56 @@ const PortalDashboard = () => {
             setHighlights(finalHighlights);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
+    };
+
+    const handleAvisosScroll = () => {
+        if (avisosCarouselRef.current && announcements.length > 0) {
+            const scrollLeft = avisosCarouselRef.current.scrollLeft;
+            const firstChild = avisosCarouselRef.current.children[0];
+            if (firstChild) {
+                const cardWidth = firstChild.offsetWidth + 24; 
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                if (newIndex !== activeAvisosIndex) {
+                    setActiveAvisosIndex(newIndex);
+                }
+            }
+        }
+    };
+
+    const scrollToAvisos = (index) => {
+        if (avisosCarouselRef.current && announcements.length > 0) {
+            const firstChild = avisosCarouselRef.current.children[0];
+            if (firstChild) {
+                const cardWidth = firstChild.offsetWidth + 24;
+                avisosCarouselRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+                setActiveAvisosIndex(index);
+            }
+        }
+    };
+
+    const handleAgendaScroll = () => {
+        if (agendaCarouselRef.current && highlights.length > 0) {
+            const scrollLeft = agendaCarouselRef.current.scrollLeft;
+            const firstChild = agendaCarouselRef.current.children[0];
+            if (firstChild) {
+                const cardWidth = firstChild.offsetWidth + 24; 
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                if (newIndex !== activeAgendaIndex) {
+                    setActiveAgendaIndex(newIndex);
+                }
+            }
+        }
+    };
+
+    const scrollToAgenda = (index) => {
+        if (agendaCarouselRef.current && highlights.length > 0) {
+            const firstChild = agendaCarouselRef.current.children[0];
+            if (firstChild) {
+                const cardWidth = firstChild.offsetWidth + 24;
+                agendaCarouselRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+                setActiveAgendaIndex(index);
+            }
+        }
     };
 
     const handleLogout = () => {
@@ -182,9 +238,46 @@ const PortalDashboard = () => {
                 <section className="space-y-6">
                     <div className="flex justify-between items-end">
                         <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-main)' }}>Avisos del Club</h3>
-                        <button onClick={() => navigate('/portal/avisos')} className="text-[9px] font-black text-red-600 tracking-widest border-b border-red-600/30">VER TODOS</button>
+                        <div className="flex items-center gap-4">
+                            {/* Scroll buttons for PC */}
+                            {announcements.length > 1 && (
+                                <div className="hidden md:flex gap-2">
+                                    <button 
+                                        onClick={() => scrollToAvisos(activeAvisosIndex - 1)} 
+                                        disabled={activeAvisosIndex === 0}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                        style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                    </button>
+                                    <button 
+                                        onClick={() => scrollToAvisos(activeAvisosIndex + 1)} 
+                                        disabled={activeAvisosIndex >= Math.min(announcements.length, 3) - 1}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                        style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </button>
+                                </div>
+                            )}
+                            {/* Dots */}
+                            <div className="flex gap-1.5 cursor-pointer">
+                                {announcements.slice(0, 3).map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => scrollToAvisos(i)}
+                                        className="h-1.5 rounded-full transition-all" 
+                                        style={{ backgroundColor: i === activeAvisosIndex ? 'var(--primary)' : 'var(--border-main)', width: i === activeAvisosIndex ? '16px' : '6px' }}
+                                    ></div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 snap-x">
+                    <div 
+                        ref={avisosCarouselRef}
+                        onScroll={handleAvisosScroll}
+                        className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 snap-x smooth-scroll"
+                    >
                         {announcements.slice(0, 3).map(ann => (
                             <div key={ann.id} onClick={() => navigate('/portal/avisos')} className="min-w-[300px] border-l-[3px] border-red-600 rounded-[2.5rem] p-8 space-y-6 shadow-2xl snap-center relative active:scale-95 transition-all border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)' }}>
                                 <div className="flex justify-between items-center text-[9px] font-black tracking-widest">
@@ -226,14 +319,47 @@ const PortalDashboard = () => {
                 <section className="space-y-6 pb-20">
                     <div className="flex justify-between items-end">
                         <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-dim)' }}>Mi Agenda</h3>
-                        <div className="flex gap-1.5">
-                            {highlights.map((_, i) => (
-                                <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: i === 0 ? 'var(--primary)' : 'var(--border-main)' }}></div>
-                            ))}
+                        <div className="flex items-center gap-4">
+                            {/* Scroll buttons for PC */}
+                            {highlights.length > 1 && (
+                                <div className="hidden md:flex gap-2">
+                                    <button 
+                                        onClick={() => scrollToAgenda(activeAgendaIndex - 1)} 
+                                        disabled={activeAgendaIndex === 0}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                        style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                    </button>
+                                    <button 
+                                        onClick={() => scrollToAgenda(activeAgendaIndex + 1)} 
+                                        disabled={activeAgendaIndex >= highlights.length - 1}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                        style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </button>
+                                </div>
+                            )}
+                            {/* Dots */}
+                            <div className="flex gap-1.5 cursor-pointer">
+                                {highlights.map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => scrollToAgenda(i)}
+                                        className="h-1.5 rounded-full transition-all" 
+                                        style={{ backgroundColor: i === activeAgendaIndex ? 'var(--primary)' : 'var(--border-main)', width: i === activeAgendaIndex ? '16px' : '6px' }}
+                                    ></div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                     
-                    <div className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 snap-x snap-mandatory pb-4">
+                    <div 
+                        ref={agendaCarouselRef}
+                        onScroll={handleAgendaScroll}
+                        className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 snap-x snap-mandatory pb-4 smooth-scroll"
+                    >
                         {highlights.length > 0 ? highlights.map((item, idx) => (
                             <div key={idx} className="min-w-[320px] snap-center card relative p-8 space-y-6 overflow-hidden border-2" style={{ borderColor: 'var(--border-main)' }}>
                                 <div className="absolute top-0 right-0 p-8">
@@ -275,8 +401,8 @@ const PortalDashboard = () => {
                                 </div>
 
                                 <button 
-                                    onClick={() => navigate(item.isPast ? `/game-center/${item.id}` : '/portal/agenda')}
-                                    className="w-full py-5 bg-red-600 text-white rounded-[2rem] text-[10px] font-black tracking-widest active:scale-95 transition-all shadow-xl shadow-red-900/20"
+                                    onClick={() => navigate(item.isPast ? `/estadisticas` : '/portal/agenda')}
+                                    className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all ${item.isPast ? 'bg-red-600 text-white shadow-red-900/40' : 'bg-white text-red-600 shadow-black/5'}`}
                                 >
                                     {item.isPast ? 'VER ESTADÍSTICAS 🏈' : 'VER EN LA AGENDA'}
                                 </button>
