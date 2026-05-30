@@ -85,6 +85,7 @@ CREATE TABLE player_stats (
     yards_rushing INT DEFAULT 0,
     yards_passing INT DEFAULT 0,
     yards_receiving INT DEFAULT 0,
+    receptions INT DEFAULT 0,
     tackles INT DEFAULT 0,
     sacks INT DEFAULT 0,
     interceptions INT DEFAULT 0,
