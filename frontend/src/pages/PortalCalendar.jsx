@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const PortalCalendar = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [view, setView] = useState('upcoming'); // 'upcoming' or 'results'
+    const [view, setView] = useState(searchParams.get('tab') === 'resultados' ? 'results' : 'upcoming');
 
     useEffect(() => {
         fetchEvents();
@@ -14,8 +15,9 @@ const PortalCalendar = () => {
     const fetchEvents = async () => {
         setLoading(true);
         try {
-            const history = view === 'results' ? '?history=true' : '';
-            const res = await fetch(`/api/calendar${history}`);
+            const user = JSON.parse(localStorage.getItem('user'));
+            const historyParam = view === 'results' ? 'history=true&' : '';
+            const res = await fetch(`/api/calendar?${historyParam}parent_id=${user?.id}`);
             const data = await res.json();
             setEvents(data);
         } catch (err) { console.error(err); }

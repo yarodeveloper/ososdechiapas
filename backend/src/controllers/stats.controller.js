@@ -19,6 +19,8 @@ const getLeaderboard = async (req, res) => {
         if (sortBy === 'yards') ord = 'total_yards';
         if (sortBy === 'yards_passing') ord = 'total_passing';
         if (sortBy === 'yards_rushing') ord = 'total_rushing';
+        if (sortBy === 'yards_receiving') ord = 'total_receiving';
+        if (sortBy === 'receptions') ord = 'total_receptions';
         if (sortBy === 'tackles') ord = 'total_tackles';
         if (sortBy === 'interceptions') ord = 'total_interceptions';
         if (sortBy === 'sacks') ord = 'total_sacks';
@@ -38,6 +40,8 @@ const getLeaderboard = async (req, res) => {
                 SUM(s.yards_passing + s.yards_rushing + s.yards_receiving) as total_yards,
                 SUM(s.yards_passing) as total_passing,
                 SUM(s.yards_rushing) as total_rushing,
+                SUM(s.yards_receiving) as total_receiving,
+                SUM(s.receptions) as total_receptions,
                 SUM(s.tackles) as total_tackles,
                 SUM(s.interceptions) as total_interceptions,
                 SUM(s.sacks) as total_sacks,
@@ -99,13 +103,14 @@ const getMatchStats = async (req, res) => {
 const savePlayerStats = async (req, res) => {
     try {
         const { 
-            player_id, event_id, yards_passing, yards_rushing, yards_receiving, 
+            player_id, event_id, yards_passing, yards_rushing, yards_receiving, receptions,
             touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp 
         } = req.body;
 
         const yp = parseInt(yards_passing) || 0;
         const yr = parseInt(yards_rushing) || 0;
         const yrec = parseInt(yards_receiving) || 0;
+        const rec = parseInt(receptions) || 0;
         const td_off = parseInt(td_offense) || 0;
         const td_def = parseInt(td_defense) || 0;
         const tds = td_off + td_def; // Calculate total TDs
@@ -120,14 +125,14 @@ const savePlayerStats = async (req, res) => {
         if (existing.length > 0) {
             await db.query(`
                 UPDATE player_stats SET 
-                yards_passing=?, yards_rushing=?, yards_receiving=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
+                yards_passing=?, yards_rushing=?, yards_receiving=?, receptions=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
                 WHERE id=?
-            `, [yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
+            `, [yp, yr, yrec, rec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
         } else {
             await db.query(`
-                INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [player_id, event_id, yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
+                INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, receptions, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [player_id, event_id, yp, yr, yrec, rec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
         }
 
         res.json({ success: true });
@@ -154,6 +159,7 @@ const saveMatchStats = async (req, res) => {
             const yp = parseInt(p.yards_passing) || 0;
             const yr = parseInt(p.yards_rushing) || 0;
             const yrec = parseInt(p.yards_receiving) || 0;
+            const rec = parseInt(p.receptions) || 0;
             const td_off = parseInt(p.td_offense) || 0;
             const td_def = parseInt(p.td_defense) || 0;
             const tds = td_off + td_def;
@@ -171,14 +177,14 @@ const saveMatchStats = async (req, res) => {
             if (existing.length > 0) {
                 await connection.query(`
                     UPDATE player_stats SET 
-                    yards_passing=?, yards_rushing=?, yards_receiving=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
+                    yards_passing=?, yards_rushing=?, yards_receiving=?, receptions=?, touchdowns=?, td_offense=?, td_defense=?, tackles=?, interceptions=?, sacks=?, points_extra=?, is_mvp=?
                     WHERE id=?
-                `, [yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
+                `, [yp, yr, yrec, rec, tds, td_off, td_def, tck, ints, sks, ext, mvp, existing[0].id]);
             } else {
                 await connection.query(`
-                    INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [p.player_id, matchId, yp, yr, yrec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
+                    INSERT INTO player_stats (player_id, game_id, yards_passing, yards_rushing, yards_receiving, receptions, touchdowns, td_offense, td_defense, tackles, interceptions, sacks, points_extra, is_mvp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [p.player_id, matchId, yp, yr, yrec, rec, tds, td_off, td_def, tck, ints, sks, ext, mvp]);
             }
         }
 
@@ -234,6 +240,10 @@ const getPlayerResume = async (req, res) => {
                 SUM(touchdowns) as total_tds, 
                 SUM(td_offense) as total_td_offense,
                 SUM(td_defense) as total_td_defense,
+                SUM(yards_passing) as total_yards_passing,
+                SUM(yards_rushing) as total_yards_rushing,
+                SUM(yards_receiving) as total_yards_receiving,
+                SUM(receptions) as total_receptions,
                 SUM(yards_passing+yards_rushing+yards_receiving) as total_yards,
                 SUM(tackles) as total_tackles,
                 SUM(interceptions) as total_interceptions,

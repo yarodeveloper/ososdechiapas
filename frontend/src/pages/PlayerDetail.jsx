@@ -209,27 +209,54 @@ const PlayerDetail = () => {
             const d = new Date(s.event_date);
             return `${d.getDate()}/${d.getMonth()+1}`;
         }),
-        datasets: [
-            {
-                label: 'Yardas por Partido',
-                data: [...history].reverse().map(s => (parseInt(s.yards_passing)||0) + (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
-                borderColor: '#dc2626',
-                backgroundColor: 'rgba(220, 38, 38, 0.15)',
-                borderWidth: 3,
-                pointBackgroundColor: '#dc2626',
-                pointBorderColor: '#000',
-                pointRadius: 4,
-                fill: true,
-                tension: 0.4
-            }
-        ]
+        datasets: []
     };
+
+    if (player?.total_yards_passing > 0) {
+        chartData.datasets.push({
+            label: 'Yardas Pase',
+            data: [...history].reverse().map(s => parseInt(s.yards_passing) || 0),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+            borderWidth: 3,
+            borderDash: [5, 5],
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#000',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        });
+    }
+
+    if (player?.total_yards_rushing > 0 || player?.total_yards_receiving > 0 || player?.total_yards_passing === 0) {
+        chartData.datasets.push({
+            label: 'Yardas Scrimmage',
+            data: [...history].reverse().map(s => (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.15)',
+            borderWidth: 3,
+            pointBackgroundColor: '#dc2626',
+            pointBorderColor: '#000',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        });
+    }
 
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { 
-            legend: { display: false },
+            legend: { 
+                display: true, 
+                position: 'bottom',
+                labels: {
+                    color: '#71717a',
+                    font: { size: 10, family: 'Inter', weight: 'bold' },
+                    usePointStyle: true,
+                    boxWidth: 8
+                }
+            },
             tooltip: {
                 backgroundColor: '#18181b',
                 titleColor: '#fff',
@@ -480,13 +507,27 @@ const PlayerDetail = () => {
                         {activeTab === 'stats' ? (
                             <div className="space-y-8 animate-fade pb-10">
                                 <div className="grid grid-cols-3 gap-3">
+                                    {(player.total_yards_passing > 0) && (
+                                        <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
+                                            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Pass Yds</span>
+                                            <span className="text-xl font-display font-black text-white italic">{player.total_yards_passing || 0}</span>
+                                        </div>
+                                    )}
+                                    {(player.total_yards_rushing > 0 || player.total_yards_receiving > 0 || player.total_yards_passing === 0) && (
+                                        <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
+                                            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Scrimmage Yds</span>
+                                            <span className="text-xl font-display font-black text-white italic">{(parseInt(player.total_yards_rushing)||0) + (parseInt(player.total_yards_receiving)||0)}</span>
+                                        </div>
+                                    )}
+                                    {(player.total_receptions > 0) && (
+                                        <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
+                                            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Recepciones</span>
+                                            <span className="text-xl font-display font-black text-white italic">{player.total_receptions || 0}</span>
+                                        </div>
+                                    )}
                                     <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
                                         <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Touchdowns</span>
                                         <span className="text-xl font-display font-black text-red-600 italic">{player.total_tds || 0}</span>
-                                    </div>
-                                    <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
-                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Yardas Totales</span>
-                                        <span className="text-xl font-display font-black text-white italic">{player.total_yards || 0}</span>
                                     </div>
                                     <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl flex flex-col items-center">
                                         <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Intercep / Sacks</span>
@@ -520,7 +561,7 @@ const PlayerDetail = () => {
                                                     </div>
                                                     <div className="grid grid-cols-4 gap-4 border-t border-zinc-800/50 pt-3">
                                                         <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">TD (OF/DF)</span><span className="text-xs font-black">{match.td_offense}/{match.td_defense}</span></div>
-                                                        <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">YDS (P/R/R)</span><span className="text-xs font-black">{match.yards_passing}/{match.yards_rushing}/{match.yards_receiving}</span></div>
+                                                        <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">YDS (P/SC) / REC</span><span className="text-xs font-black">{match.yards_passing}/{(parseInt(match.yards_rushing)||0)+(parseInt(match.yards_receiving)||0)} / {match.receptions||0}</span></div>
                                                         <div className="flex flex-col"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">DEF (T/I/S)</span><span className="text-xs font-black">{match.tackles}/{match.interceptions}/{match.sacks}</span></div>
                                                         <div className="flex flex-col items-end"><span className="text-[7px] font-black text-zinc-600 uppercase mb-0.5 tracking-tighter">MVP</span><span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] ${match.is_mvp ? 'bg-amber-500 text-black shadow-lg shadow-amber-900/40' : 'bg-zinc-800 text-zinc-600'}`}>{match.is_mvp ? '★' : '—'}</span></div>
                                                     </div>

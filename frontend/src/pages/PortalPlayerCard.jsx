@@ -33,7 +33,9 @@ const PortalPlayerCard = () => {
     if (loading) return <div className="bg-black min-h-screen text-white flex items-center justify-center font-black">Generando Playcard...</div>;
 
     const totals = stats.reduce((acc, s) => ({
-        yards: acc.yards + (parseInt(s.yards_passing) || 0) + (parseInt(s.yards_rushing) || 0) + (parseInt(s.yards_receiving) || 0),
+        yards_passing: acc.yards_passing + (parseInt(s.yards_passing) || 0),
+        yards_scrimmage: acc.yards_scrimmage + (parseInt(s.yards_rushing) || 0) + (parseInt(s.yards_receiving) || 0),
+        receptions: acc.receptions + (parseInt(s.receptions) || 0),
         tds: acc.tds + (parseInt(s.touchdowns) || 0),
         td_off: acc.td_off + (parseInt(s.td_offense) || 0),
         td_def: acc.td_def + (parseInt(s.td_defense) || 0),
@@ -41,34 +43,61 @@ const PortalPlayerCard = () => {
         ints: acc.ints + (parseInt(s.interceptions) || 0),
         sacks: acc.sacks + (parseInt(s.sacks) || 0),
         extra: acc.extra + (parseInt(s.points_extra) || 0)
-    }), { yards: 0, tds: 0, td_off: 0, td_def: 0, tackles: 0, ints: 0, sacks: 0, extra: 0 });
+    }), { yards_passing: 0, yards_scrimmage: 0, receptions: 0, tds: 0, td_off: 0, td_def: 0, tackles: 0, ints: 0, sacks: 0, extra: 0 });
 
     const chartData = {
         labels: [...stats].reverse().map(s => {
             const d = new Date(s.event_date);
             return `${d.getDate()}/${d.getMonth()+1}`;
         }),
-        datasets: [
-            {
-                label: 'Yardas por Partido',
-                data: [...stats].reverse().map(s => (parseInt(s.yards_passing)||0) + (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
-                borderColor: '#dc2626',
-                backgroundColor: 'rgba(220, 38, 38, 0.15)',
-                borderWidth: 3,
-                pointBackgroundColor: '#dc2626',
-                pointBorderColor: '#000',
-                pointRadius: 4,
-                fill: true,
-                tension: 0.4
-            }
-        ]
+        datasets: []
     };
+
+    if (totals.yards_passing > 0) {
+        chartData.datasets.push({
+            label: 'Yardas Pase',
+            data: [...stats].reverse().map(s => parseInt(s.yards_passing) || 0),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+            borderWidth: 3,
+            borderDash: [5, 5],
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#000',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        });
+    }
+
+    if (totals.yards_scrimmage > 0 || totals.yards_passing === 0) {
+        chartData.datasets.push({
+            label: 'Yardas Scrimmage',
+            data: [...stats].reverse().map(s => (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.15)',
+            borderWidth: 3,
+            pointBackgroundColor: '#dc2626',
+            pointBorderColor: '#000',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        });
+    }
 
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { 
-            legend: { display: false },
+            legend: { 
+                display: true, 
+                position: 'bottom',
+                labels: {
+                    color: '#71717a',
+                    font: { size: 10, family: 'Inter', weight: 'bold' },
+                    usePointStyle: true,
+                    boxWidth: 8
+                }
+            },
             tooltip: {
                 backgroundColor: '#18181b',
                 titleColor: '#fff',
@@ -147,16 +176,49 @@ const PortalPlayerCard = () => {
                     </div>
                 </section>
 
+                {/* 3. Match History Log (MOVED UP) */}
+                <section className="space-y-6">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-600 italic px-2">Historial de Partidos</h3>
+                    <div className="space-y-4">
+                        {[...stats].sort((a, b) => new Date(b.event_date) - new Date(a.event_date)).map(s => (
+                            <div key={s.id} className="bg-zinc-950/50 border border-zinc-900 rounded-[1.8rem] p-6 flex justify-between items-center group active:scale-95 transition-all">
+                                <div>
+                                    <h4 className="text-sm font-black italic uppercase leading-none">{s.event_title}</h4>
+                                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic">{new Date(s.event_date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric'})}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="flex items-center justify-end gap-3">
+                                        {s.is_mvp && <span className="text-[10px] font-black bg-amber-500 text-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20">★ MVP</span>}
+                                        <div className="flex flex-col items-end gap-0.5">
+                                            {(parseInt(s.yards_passing) > 0) && <span className="text-lg font-black italic text-blue-500 leading-none">+{s.yards_passing} YDS PAS</span>}
+                                            {(parseInt(s.yards_rushing) > 0 || parseInt(s.yards_receiving) > 0) && <span className="text-lg font-black italic text-red-600 leading-none">+{parseInt(s.yards_rushing) + parseInt(s.yards_receiving)} YDS SC</span>}
+                                            {(parseInt(s.receptions) > 0) && <span className="text-[9px] font-black italic text-zinc-400 leading-none">{s.receptions} REC</span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 justify-end mt-2">
+                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">TD: {s.td_offense}+{s.td_defense}</span>
+                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">DEF: {s.tackles}/{s.interceptions}/{s.sacks}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
                 {/* 2. Lifetime Stats Grid */}
                 <section className="grid grid-cols-2 gap-4">
-                    {[
-                        { label: 'YARDAS TOTALES', val: totals.yards, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-                        { label: 'TOUCHDOWNS', val: `${totals.tds} (${totals.td_off}+${totals.td_def})`, icon: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z' },
-                        { label: 'TACKLEOS', val: totals.tackles, icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-                        { label: 'INT / SACKS', val: `${totals.ints}/${totals.sacks}`, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-                        { label: 'PUNTOS EXTRA', val: totals.extra, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-                        { label: 'MVP COUNT', val: stats.filter(s => s.is_mvp).length, icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z' }
-                    ].map((st, i) => (
+                    {(() => {
+                        const statBlocks = [];
+                        if (totals.yards_passing > 0) statBlocks.push({ label: 'YARDAS PASE', val: totals.yards_passing, icon: 'M13 10V3L4 14h7v7l9-11h-7z' });
+                        if (totals.yards_scrimmage > 0) statBlocks.push({ label: 'YARDAS SCRIMMAGE', val: totals.yards_scrimmage, icon: 'M13 10V3L4 14h7v7l9-11h-7z' });
+                        if (totals.receptions > 0) statBlocks.push({ label: 'RECEPCIONES', val: totals.receptions, icon: 'M13 10V3L4 14h7v7l9-11h-7z' });
+                        statBlocks.push({ label: 'TOUCHDOWNS', val: totals.tds, icon: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z' });
+                        if (totals.tackles > 0) statBlocks.push({ label: 'TACKLEOS', val: totals.tackles, icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' });
+                        if (totals.ints > 0 || totals.sacks > 0) statBlocks.push({ label: 'INT / SACKS', val: `${totals.ints}/${totals.sacks}`, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' });
+                        if (totals.extra > 0) statBlocks.push({ label: 'PUNTOS EXTRA', val: totals.extra, icon: 'M13 10V3L4 14h7v7l9-11h-7z' });
+                        statBlocks.push({ label: 'MVP COUNT', val: stats.filter(s => s.is_mvp).length, icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z' });
+                        return statBlocks;
+                    })().map((st, i) => (
                         <div key={i} className="bg-zinc-950 border border-zinc-900 rounded-[2rem] p-6 shadow-xl relative group hover:border-red-600 transition-colors">
                             <div className="w-8 h-8 rounded-lg bg-red-600/5 flex items-center justify-center text-red-600 mb-6"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d={st.icon}/></svg></div>
                             <p className="text-4xl font-black italic tracking-tighter mb-1 font-display leading-none">{st.val}</p>
@@ -176,29 +238,6 @@ const PortalPlayerCard = () => {
                         </div>
                     </section>
                 )}
-
-                {/* 3. Match History Log */}
-                <section className="space-y-6">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-600 italic px-2">Historial de Partidos</h3>
-                    <div className="space-y-4">
-                        {stats.map(s => (
-                            <div key={s.id} className="bg-zinc-950/50 border border-zinc-900 rounded-[1.8rem] p-6 flex justify-between items-center group active:scale-95 transition-all">
-                                <div>
-                                    <h4 className="text-sm font-black italic uppercase leading-none">{s.event_title}</h4>
-                                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic">{new Date(s.event_date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric'})}</p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-lg font-black italic text-red-600">+{parseInt(s.yards_passing) + parseInt(s.yards_rushing) + parseInt(s.yards_receiving)} YDS</span>
-                                    <div className="flex flex-wrap gap-1 justify-end mt-2">
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">TD: {s.td_offense}+{s.td_defense}</span>
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">DEF: {s.tackles}/{s.interceptions}/{s.sacks}</span>
-                                        {s.is_mvp && <span className="text-[7px] font-black bg-amber-500 text-black px-2 py-0.5 rounded uppercase tracking-widest">★ MVP</span>}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
             </main>
         </div>
     );

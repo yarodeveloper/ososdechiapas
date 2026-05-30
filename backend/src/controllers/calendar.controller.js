@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 const getEvents = async (req, res) => {
     try {
-        const { category_id, history } = req.query;
+        const { category_id, history, parent_id } = req.query;
         let query = `
             SELECT e.*, c.name as category_name, t.name as rival_name, t.logo_url as rival_logo,
             (SELECT COUNT(*) FROM player_stats ps WHERE ps.game_id = e.id) as stats_count
@@ -16,6 +16,11 @@ const getEvents = async (req, res) => {
         if (category_id) {
             query += " AND e.category_id = ?";
             params.push(category_id);
+        }
+
+        if (parent_id) {
+            query += " AND (e.category_id IN (SELECT category_id FROM players WHERE user_id = ?) OR e.category_id IS NULL)";
+            params.push(parent_id);
         }
 
         if (history === 'true') {

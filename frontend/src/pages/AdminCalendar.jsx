@@ -207,46 +207,66 @@ const AdminCalendar = () => {
                                 )}
                             </div>
 
-                            {ev.event_type === 'match' && !isCoach && (
+                            {ev.event_type === 'match' && (
                                 <div className="mt-4 pt-5 border-t space-y-4" style={{ borderColor: 'var(--border-main)' }}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">OSOS</span>
-                                                <input 
-                                                    type="number" 
-                                                    value={ev.score_osos ?? ''} 
-                                                    placeholder="0"
-                                                    onFocus={(e) => e.target.select()}
-                                                    onChange={(e) => updateScore(ev.id, e.target.value, ev.score_rival)}
-                                                    className="w-14 border rounded-xl py-2 text-center text-xs font-black text-red-600 outline-none focus:border-red-600"
-                                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
-                                                />
+                                    {!isCoach && (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">OSOS</span>
+                                                    <input 
+                                                        type="number" 
+                                                        value={ev.score_osos ?? ''} 
+                                                        placeholder="0"
+                                                        onFocus={(e) => e.target.select()}
+                                                        onChange={(e) => updateScore(ev.id, e.target.value, ev.score_rival)}
+                                                        className="w-14 border rounded-xl py-2 text-center text-xs font-black text-red-600 outline-none focus:border-red-600"
+                                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}
+                                                    />
+                                                </div>
+                                                
+                                                <span className="text-[10px] font-black italic mt-4" style={{ color: 'var(--text-dim)' }}>-</span>
+                                                
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[60px]" style={{ color: 'var(--text-dim)' }}>{ev.rival_name || 'RIVAL'}</span>
+                                                    <input 
+                                                        type="number" 
+                                                        value={ev.score_rival ?? ''} 
+                                                        placeholder="0"
+                                                        onFocus={(e) => e.target.select()}
+                                                        onChange={(e) => updateScore(ev.id, ev.score_osos, e.target.value)}
+                                                        className="w-14 border rounded-xl py-2 text-center text-xs font-black outline-none focus:border-zinc-600"
+                                                        style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                                    />
+                                                </div>
                                             </div>
-                                            
-                                            <span className="text-[10px] font-black italic mt-4" style={{ color: 'var(--text-dim)' }}>-</span>
-                                            
-                                            <div className="flex flex-col items-center gap-1">
-                                                <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[60px]" style={{ color: 'var(--text-dim)' }}>{ev.rival_name || 'RIVAL'}</span>
-                                                <input 
-                                                    type="number" 
-                                                    value={ev.score_rival ?? ''} 
-                                                    placeholder="0"
-                                                    onFocus={(e) => e.target.select()}
-                                                    onChange={(e) => updateScore(ev.id, ev.score_osos, e.target.value)}
-                                                    className="w-14 border rounded-xl py-2 text-center text-xs font-black outline-none focus:border-zinc-600"
-                                                    style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
-                                                />
+                                            <div className="flex flex-col gap-2">
+                                                <button 
+                                                    onClick={() => navigate(`/admin/matches/${ev.id}/stats`)}
+                                                    className="bg-red-600/10 text-red-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                                                >
+                                                    Captura Stats 🏈
+                                                </button>
+                                                <button 
+                                                    onClick={() => navigate(`/portal/match/${ev.id}/stats`)}
+                                                    className="border border-red-600/20 text-red-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                                                >
+                                                    Ver Scoreboard 🏆
+                                                </button>
                                             </div>
                                         </div>
-                                        <button 
-                                            onClick={() => navigate(`/admin/matches/${ev.id}/stats`)}
-                                            className="bg-red-600/10 text-red-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
-                                        >
-                                            Captura Stats 🏈
-                                        </button>
-                                    </div>
-                                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-center italic" style={{ color: 'var(--text-muted)' }}>Registra marcadores y desempeño individual para el ranking</p>
+                                    )}
+                                    {isCoach && (
+                                        <div className="flex justify-end">
+                                            <button 
+                                                onClick={() => navigate(`/portal/match/${ev.id}/stats`)}
+                                                className="border border-red-600/20 text-red-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                                            >
+                                                Ver Scoreboard 🏆
+                                            </button>
+                                        </div>
+                                    )}
+                                    {!isCoach && <p className="text-[7px] font-black uppercase tracking-[0.2em] text-center italic" style={{ color: 'var(--text-muted)' }}>Registra marcadores y desempeño individual para el ranking</p>}
                                 </div>
                             )}
                         </div>

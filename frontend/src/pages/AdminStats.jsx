@@ -71,6 +71,7 @@ const AdminStats = () => {
                             yards_rushing: 0,
                             yards_passing: 0,
                             yards_receiving: 0,
+                            receptions: 0,
                             tackles: 0,
                             interceptions: 0,
                             sacks: 0,
@@ -183,7 +184,8 @@ const AdminStats = () => {
                                 <div className="space-y-2">
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Pass:</b> Yardas ganadas por pase (QB)</p>
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rush:</b> Yardas ganadas por carrera (RB/QB)</p>
-                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rec:</b> Yardas ganadas por recepción (WR/TE)</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rec Yds:</b> Yardas ganadas por recepción (WR/TE)</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>REC:</b> Pases atrapados (Recepciones)</p>
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>TD-OF:</b> Touchdowns anotados por la ofensiva</p>
                                 </div>
                             </div>
@@ -288,6 +290,7 @@ const AdminStats = () => {
                                                 <StepField pid={player.id} fid="yards_passing" label="Pass Yds (QB)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
                                                 <StepField pid={player.id} fid="yards_rushing" label="Rush Yds (Car)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
                                                 <StepField pid={player.id} fid="yards_receiving" label="Rec Yds (WR)" delta={5} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
+                                                <StepField pid={player.id} fid="receptions" label="REC (Atrapadas)" delta={1} active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
                                                 <StepField pid={player.id} fid="td_offense" label="TD-OF (Ataque)" active={ph.offense} color="var(--primary)" btnColor="#dc2626" />
                                             </div>
                                         </div>

@@ -14,6 +14,19 @@ const Dashboard = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const carouselRef = useRef(null);
   
+  const [activeResultsIndex, setActiveResultsIndex] = useState(0);
+  const resultsRef = useRef(null);
+
+  const scrollToResults = (index) => {
+    if (resultsRef.current && dashboardData.lastResults[index]) {
+      setActiveResultsIndex(index);
+      resultsRef.current.scrollTo({
+        left: index * 276, // 260px card + 16px gap
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isCoach = user.role === 'coach';
 
@@ -41,7 +54,7 @@ const Dashboard = () => {
 
         setHighlights(highlightsArr);
         setDashboardData({
-          lastResults: Array.isArray(pastData) ? pastData.slice(0, 3) : [],
+          lastResults: Array.isArray(pastData) ? pastData.slice(0, 8) : [],
           leadsCount: Array.isArray(leadsData) ? leadsData.filter(l => l.status === 'pending').length : 0
         });
       } catch (err) {
@@ -317,10 +330,32 @@ const Dashboard = () => {
         <section className="pt-2">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-[11px] font-black uppercase tracking-[0.3em] italic" style={{ color: 'var(--text-dim)' }}>Resultados Recientes</h3>
-              <div className="w-8 h-px" style={{ backgroundColor: 'var(--border-main)' }}></div>
+              <div className="flex items-center gap-4">
+                 {dashboardData.lastResults?.length > 1 && (
+                    <div className="hidden md:flex gap-2">
+                       <button 
+                          onClick={() => scrollToResults(activeResultsIndex - 1)} 
+                          disabled={activeResultsIndex === 0}
+                          className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                          style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                       >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
+                       </button>
+                       <button 
+                          onClick={() => scrollToResults(activeResultsIndex + 1)} 
+                          disabled={activeResultsIndex === dashboardData.lastResults.length - 1}
+                          className="w-8 h-8 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                          style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                       >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                       </button>
+                    </div>
+                 )}
+                 <div className="w-8 h-px md:hidden" style={{ backgroundColor: 'var(--border-main)' }}></div>
+              </div>
            </div>
-           <div className="flex gap-4 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar touch-pan-x">
-              {lastResults?.length > 0 ? lastResults.map(match => {
+           <div ref={resultsRef} className="flex gap-4 overflow-x-auto pb-6 -mx-6 px-6 no-scrollbar touch-pan-x smooth-scroll">
+              {dashboardData.lastResults?.length > 0 ? dashboardData.lastResults.map(match => {
                  const es = editScores[match.id];
                  const isEditing = es?.editing;
                  const isSaving = es?.saving;

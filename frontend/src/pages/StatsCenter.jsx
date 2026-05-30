@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const StatsCenter = () => {
@@ -12,6 +12,23 @@ const StatsCenter = () => {
     const [summaries, setSummaries] = useState({ touchdowns: [], yards: [], tackles: [] });
     const [globalMvps, setGlobalMvps] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const mvpCarouselRef = useRef(null);
+    const [activeMvpIndex, setActiveMvpIndex] = useState(0);
+
+    const scrollToMvp = (index) => {
+        if (!mvpCarouselRef.current) return;
+        const container = mvpCarouselRef.current;
+        const cardWidth = 164; // 140px width + 24px gap
+        container.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+        setActiveMvpIndex(index);
+    };
+
+    const handleMvpScroll = (e) => {
+        const cardWidth = 164;
+        const index = Math.round(e.target.scrollLeft / cardWidth);
+        setActiveMvpIndex(index);
+    };
 
     useEffect(() => {
         const loadCatalogs = async () => {
@@ -95,11 +112,34 @@ const StatsCenter = () => {
                         <section className="mb-12">
                            <div className="flex items-center justify-between mb-6">
                               <h3 className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--text-dim)' }}>Spotlight: MVP's Globales</h3>
-                              <div className="w-12 h-0.5 bg-red-600 opacity-20"></div>
+                              {globalMvps.length > 1 && (
+                                  <div className="flex gap-2">
+                                      <button 
+                                          onClick={() => scrollToMvp(activeMvpIndex - 1)} 
+                                          disabled={activeMvpIndex === 0}
+                                          className="w-6 h-6 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                          style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                      >
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                      </button>
+                                      <button 
+                                          onClick={() => scrollToMvp(activeMvpIndex + 1)} 
+                                          disabled={activeMvpIndex >= Math.min(globalMvps.length, 5) - 1}
+                                          className="w-6 h-6 rounded-full flex items-center justify-center border transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                                          style={{ borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
+                                      >
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                      </button>
+                                  </div>
+                              )}
                            </div>
-                           <div className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+                           <div 
+                               ref={mvpCarouselRef}
+                               onScroll={handleMvpScroll}
+                               className="flex gap-6 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 snap-x smooth-scroll"
+                           >
                               {globalMvps.slice(0, 5).map(p => (
-                                 <div key={p.id} onClick={() => navigate(`/players/${p.id}`)} className="min-w-[140px] flex flex-col items-center gap-3 cursor-pointer group">
+                                 <div key={p.id} onClick={() => navigate(`/players/${p.id}`)} className="min-w-[140px] flex flex-col items-center gap-3 cursor-pointer group snap-center">
                                     <div className="relative">
                                        <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-amber-600 to-amber-300 shadow-xl group-hover:scale-105 transition-transform">
                                           <div className="w-full h-full rounded-full overflow-hidden border-2" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--bg-main)' }}>
@@ -227,9 +267,11 @@ const StatsCenter = () => {
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                             {[
                                 { id: 'touchdowns', label: 'TDs' },
-                                { id: 'yards', label: 'Yardas' },
+                                { id: 'yards', label: 'Yardas Totales' },
                                 { id: 'yards_passing', label: 'Pase' },
                                 { id: 'yards_rushing', label: 'Carrera' },
+                                { id: 'yards_receiving', label: 'Recepción' },
+                                { id: 'receptions', label: 'REC' },
                                 { id: 'tackles', label: 'Tackles' },
                                 { id: 'interceptions', label: 'INT' },
                                 { id: 'sacks', label: 'SCK' }
@@ -274,8 +316,12 @@ const StatsCenter = () => {
                                                     <span className="text-[7px] font-black uppercase tracking-tighter" style={{ color: 'var(--text-muted)' }}>Valor Líder</span>
                                                     <span className="text-xl font-black italic text-red-600 leading-none">
                                                         {sortBy === 'touchdowns' ? p.total_touchdowns : 
-                                                         sortBy.includes('yards') ? (p[sortBy] || p.total_yards) : 
-                                                         p[sortBy] || 0}
+                                                         sortBy === 'yards' ? p.total_yards : 
+                                                         sortBy === 'yards_passing' ? p.total_passing : 
+                                                         sortBy === 'yards_rushing' ? p.total_rushing : 
+                                                         sortBy === 'yards_receiving' ? p.total_receiving : 
+                                                         sortBy === 'receptions' ? p.total_receptions : 
+                                                         p[`total_${sortBy}`] || 0}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col">

@@ -103,7 +103,7 @@ const MatchStatsCapture = () => {
                     } else {
                         initialStats[p.id] = {
                             player_id: p.id, touchdowns: 0, td_offense: 0, td_defense: 0,
-                            yards_rushing: 0, yards_passing: 0, yards_receiving: 0,
+                            yards_rushing: 0, yards_passing: 0, yards_receiving: 0, receptions: 0,
                             tackles: 0, interceptions: 0, sacks: 0, points_extra: 0, is_mvp: false
                         };
                     }
@@ -196,7 +196,8 @@ const MatchStatsCapture = () => {
                                 <div className="space-y-2">
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Pass:</b> Yardas ganadas por pase (QB)</p>
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rush:</b> Yardas ganadas por carrera (RB/QB)</p>
-                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rec:</b> Yardas por recepción (WR/TE)</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>Rec Yds:</b> Yardas por recepción (WR/TE)</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>REC:</b> Pases atrapados (Recepciones)</p>
                                     <p className="text-xs" style={{ color: 'var(--text-dim)' }}><b style={{ color: 'var(--text-main)' }}>TD-OF:</b> Touchdowns ofensivos</p>
                                 </div>
                             </div>
@@ -322,6 +323,8 @@ const MatchStatsCapture = () => {
                                                 onChange={e => handleStatChange(player.id, 'yards_rushing', parseInt(e.target.value) || 0)} />
                                             <StatInput label="Rec Yds (Rec)" value={playerStat.yards_receiving || 0} isActive={phases.offense} accentColor="var(--primary)"
                                                 onChange={e => handleStatChange(player.id, 'yards_receiving', parseInt(e.target.value) || 0)} />
+                                            <StatInput label="REC (Atrapadas)" value={playerStat.receptions || 0} isActive={phases.offense} accentColor="var(--primary)"
+                                                onChange={e => handleStatChange(player.id, 'receptions', parseInt(e.target.value) || 0)} />
                                             <StatInput label="TD-OF (Touchdown)" value={playerStat.td_offense || 0} isActive={phases.offense} accentColor="var(--primary)"
                                                 onChange={e => handleStatChange(player.id, 'td_offense', parseInt(e.target.value) || 0)} />
                                         </div>

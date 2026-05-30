@@ -60,8 +60,8 @@ const PortalDashboard = () => {
                 fetch(`/api/players/parent/${currUser.id}`),
                 fetch('/api/payments/user/' + currUser.id),
                 fetch('/api/announcements'),
-                fetch('/api/calendar'),
-                fetch('/api/calendar?history=true'),
+                fetch(`/api/calendar?parent_id=${currUser.id}`),
+                fetch(`/api/calendar?history=true&parent_id=${currUser.id}`),
                 fetch('/api/social')
             ]);
             const playersData = await pRes.json();
@@ -218,18 +218,20 @@ const PortalDashboard = () => {
                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[50px] -translate-y-20 translate-x-20"></div>
                 </section>
 
-                {/* 4. Quick Access Icons (RESTORED FUNCTIONALITY) */}
-                <section className="flex justify-center gap-10 px-2 text-center">
+                {/* 4. Quick Access Icons */}
+                <section className="flex flex-wrap justify-center gap-6 px-2 text-center">
                     {[
                         { label: 'AGENDA', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', path: '/portal/agenda' },
                         { label: 'MIS RECIBOS', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', path: '/portal/payments?filter=paid' },
-                        { label: 'EDO. CUENTA', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', path: '/portal/payments' }
+                        { label: 'EDO. CUENTA', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', path: '/portal/payments' },
+                        { label: 'RESULTADOS', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', path: '/portal/agenda?tab=resultados' },
+                        { label: 'MIS ESTADÍSTICAS', icon: 'M18 20V10M12 20V4M6 20v-6', path: players.length > 0 ? `/portal/player/${players[0].id}/playcard` : '/portal' }
                     ].map((btn, i) => (
-                        <div key={i} onClick={() => navigate(btn.path)} className="flex flex-col items-center gap-3 active:scale-95 cursor-pointer group">
-                            <div className="w-20 h-20 rounded-full border flex items-center justify-center shadow-2xl group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d={btn.icon}/></svg>
+                        <div key={i} onClick={() => navigate(btn.path)} className="flex flex-col items-center gap-3 active:scale-95 cursor-pointer group w-20">
+                            <div className="w-16 h-16 rounded-full border flex items-center justify-center shadow-2xl group-hover:bg-red-600/10 group-hover:text-red-500 transition-colors" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d={btn.icon}/></svg>
                             </div>
-                            <span className="text-[10px] font-black tracking-widest uppercase italic" style={{ color: 'var(--text-dim)' }}>{btn.label}</span>
+                            <span className="text-[9px] font-black tracking-widest uppercase italic leading-tight" style={{ color: 'var(--text-dim)' }}>{btn.label}</span>
                         </div>
                     ))}
                 </section>
@@ -400,12 +402,14 @@ const PortalDashboard = () => {
                                     <span className="text-[10px] font-black tracking-widest uppercase italic">{item.location_name || 'ESTADIO CLUB'}, {new Date(item.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} HRS</span>
                                 </div>
 
-                                <button 
-                                    onClick={() => navigate(item.isPast ? `/estadisticas` : '/portal/agenda')}
-                                    className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all ${item.isPast ? 'bg-red-600 text-white shadow-red-900/40' : 'bg-white text-red-600 shadow-black/5'}`}
-                                >
-                                    {item.isPast ? 'VER ESTADÍSTICAS 🏈' : 'VER EN LA AGENDA'}
-                                </button>
+                                {!item.isPast && (
+                                    <button 
+                                        onClick={() => navigate('/portal/agenda')}
+                                        className="w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all bg-white text-red-600 shadow-black/5 active:scale-95"
+                                    >
+                                        VER EN LA AGENDA
+                                    </button>
+                                )}
                             </div>
                         )) : (
                             <div className="w-full card p-8 text-center opacity-40">
