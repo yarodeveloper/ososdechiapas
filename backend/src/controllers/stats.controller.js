@@ -24,6 +24,14 @@ const getLeaderboard = async (req, res) => {
         if (sortBy === 'tackles') ord = 'total_tackles';
         if (sortBy === 'interceptions') ord = 'total_interceptions';
         if (sortBy === 'sacks') ord = 'total_sacks';
+        if (sortBy === 'mvp') ord = 'mvp_count';
+
+        let whereClause = "WHERE p.status = 'active'";
+        const queryParams = [];
+        if (category_id !== 'global') {
+            whereClause += " AND p.category_id = ?";
+            queryParams.push(category_id);
+        }
 
         const [rows] = await db.query(`
             SELECT 
@@ -49,11 +57,11 @@ const getLeaderboard = async (req, res) => {
             FROM players p
             JOIN player_stats s ON p.id = s.player_id
             LEFT JOIN catalogs_positions pos ON p.position_id = pos.id
-            WHERE p.category_id = ? AND p.status = 'active'
+            ${whereClause}
             GROUP BY p.id
             ORDER BY ${ord} DESC
             LIMIT 10
-        `, [category_id]);
+        `, queryParams);
         res.json(rows);
     } catch (e) { res.status(500).json({ message: e.message }); }
 };
