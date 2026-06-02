@@ -183,7 +183,7 @@ const StatsCenter = () => {
         <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
             <header className="sticky top-0 z-50 backdrop-blur-md border-b px-6 py-4" style={{ backgroundColor: 'var(--bg-header)', borderColor: 'var(--border-main)' }}>
                 <div className="max-w-md mx-auto flex items-center justify-between">
-                    <button onClick={() => viewMode === 'detail' ? setViewMode('summary') : navigate('/')} className="w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-90" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>
+                    <button onClick={() => viewMode === 'detail' ? setViewMode('summary') : navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-90" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-main)', color: 'var(--text-dim)' }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
                     </button>
                     <h1 className="font-display font-black text-lg uppercase italic tracking-tighter">Estadísticas <span className="text-red-600">Premium</span></h1>

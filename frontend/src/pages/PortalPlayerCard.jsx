@@ -120,7 +120,7 @@ const PortalPlayerCard = () => {
             <div className="absolute top-0 left-0 w-full h-[600px] bg-red-600/10 blur-[120px] rounded-full -translate-y-1/2"></div>
             
             <header className="fixed top-0 left-0 w-full h-18 bg-black/60 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-6 py-4">
-                <button onClick={() => navigate('/portal')} className="w-10 h-10 rounded-xl bg-zinc-900/50 flex items-center justify-center text-zinc-400">
+                <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-zinc-900/50 flex items-center justify-center text-zinc-400 hover:text-white transition-colors active:scale-95">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                 </button>
                 <h1 className="text-[10px] font-black uppercase tracking-[0.3em] italic text-zinc-500">Playcard <span className="text-red-600 font-black">Elite</span></h1>
