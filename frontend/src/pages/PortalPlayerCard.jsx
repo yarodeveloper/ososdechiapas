@@ -53,7 +53,11 @@ const PortalPlayerCard = () => {
         datasets: []
     };
 
-    if (totals.yards_passing > 0) {
+    const hasDef = totals.tackles + totals.ints + totals.sacks > 0;
+    const hasPass = totals.yards_passing > 0;
+    const hasRushRec = totals.yards_scrimmage > 0;
+
+    if (hasPass) {
         chartData.datasets.push({
             label: 'Yardas Pase',
             data: [...stats].reverse().map(s => parseInt(s.yards_passing) || 0),
@@ -69,7 +73,7 @@ const PortalPlayerCard = () => {
         });
     }
 
-    if (totals.yards_scrimmage > 0 || totals.yards_passing === 0) {
+    if (hasRushRec || (!hasPass && !hasDef)) {
         chartData.datasets.push({
             label: 'Yardas Scrimmage',
             data: [...stats].reverse().map(s => (parseInt(s.yards_rushing)||0) + (parseInt(s.yards_receiving)||0)),
@@ -77,6 +81,21 @@ const PortalPlayerCard = () => {
             backgroundColor: 'rgba(220, 38, 38, 0.15)',
             borderWidth: 3,
             pointBackgroundColor: '#dc2626',
+            pointBorderColor: '#000',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        });
+    }
+
+    if (hasDef) {
+        chartData.datasets.push({
+            label: 'Acciones Defensivas',
+            data: [...stats].reverse().map(s => (parseInt(s.tackles)||0) + (parseInt(s.interceptions)||0) + (parseInt(s.sacks)||0)),
+            borderColor: '#eab308',
+            backgroundColor: 'rgba(234, 179, 8, 0.15)',
+            borderWidth: 3,
+            pointBackgroundColor: '#eab308',
             pointBorderColor: '#000',
             pointRadius: 4,
             fill: true,
@@ -101,9 +120,8 @@ const PortalPlayerCard = () => {
             tooltip: {
                 backgroundColor: '#18181b',
                 titleColor: '#fff',
-                bodyColor: '#ef4444',
                 bodyFont: { weight: 'bold' },
-                displayColors: false,
+                displayColors: true,
                 padding: 12,
                 cornerRadius: 8
             }
@@ -188,7 +206,7 @@ const PortalPlayerCard = () => {
                                 </div>
                                 <div className="text-right">
                                     <div className="flex items-center justify-end gap-3">
-                                        {s.is_mvp && <span className="text-[10px] font-black bg-amber-500 text-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20">★ MVP</span>}
+                                        {s.is_mvp === 1 && <span className="text-[10px] font-black bg-amber-500 text-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20">★ MVP</span>}
                                         <div className="flex flex-col items-end gap-0.5">
                                             {(parseInt(s.yards_passing) > 0) && <span className="text-lg font-black italic text-blue-500 leading-none">+{s.yards_passing} YDS PAS</span>}
                                             {(parseInt(s.yards_rushing) > 0 || parseInt(s.yards_receiving) > 0) && <span className="text-lg font-black italic text-red-600 leading-none">+{parseInt(s.yards_rushing) + parseInt(s.yards_receiving)} YDS SC</span>}
@@ -196,8 +214,8 @@ const PortalPlayerCard = () => {
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-1 justify-end mt-2">
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">TD: {s.td_offense}+{s.td_defense}</span>
-                                        <span className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400">DEF: {s.tackles}/{s.interceptions}/{s.sacks}</span>
+                                        <span title={`${s.td_offense} TD Ofensivos, ${s.td_defense} TD Defensivos`} className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400 cursor-help hover:text-white transition-colors">TD: {s.td_offense}+{s.td_defense}</span>
+                                        <span title={`${s.tackles} Tackleos, ${s.interceptions} Intercepciones, ${s.sacks} Sacks`} className="text-[7px] font-black bg-zinc-900 px-2 py-0.5 rounded uppercase tracking-widest text-zinc-400 cursor-help hover:text-white transition-colors">DEF: {s.tackles}/{s.interceptions}/{s.sacks}</span>
                                     </div>
                                 </div>
                             </div>

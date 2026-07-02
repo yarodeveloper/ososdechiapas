@@ -88,7 +88,7 @@ const MatchStatsCapture = () => {
                 const pRes = await fetch(`/api/players/category/${mData.category_id}`);
                 const pData = await pRes.json();
 
-                const perfRes = await fetch(`/api/stats/match/${matchId}/performances`);
+                const perfRes = await fetch(`/api/stats/match/${matchId}`);
                 const perfData = await perfRes.json();
                 const perfMap = {};
                 perfData.forEach(p => { perfMap[p.player_id] = p; });
